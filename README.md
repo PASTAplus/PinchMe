@@ -1,2 +1,2 @@
 # PinchMe
-A PASTA+ data package integrity checking application
+A PASTA+ data package integrity checker
