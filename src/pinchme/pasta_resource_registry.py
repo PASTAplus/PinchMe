@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-:Mod: dp_resources
+:Mod: pasta_resource_registry
 
 :Synopsis:
 
@@ -14,6 +14,7 @@
 """
 import daiquiri
 from sqlalchemy import create_engine
+from sqlalchemy.orm.exc import NoResultFound
 
 from pinchme.config import Config
 
@@ -21,12 +22,15 @@ from pinchme.config import Config
 logger = daiquiri.getLogger(__name__)
 
 
-def get_packages(sql: str):
+def query(sql: str) -> list:
+    rs = list()
     db = Config.DB_DRIVER + '://' + Config.DB_USER + ':' + Config.DB_PW + '@'\
          + Config.DB_HOST + '/' + Config.DB_DB
     connection = create_engine(db)
     try:
         rs = connection.execute(sql).fetchall()
-        return rs
+    except NoResultFound as e:
+        logger.warning(e)
     except Exception as e:
         logger.error(e)
+    return rs
