@@ -41,6 +41,8 @@ class Resources(Base):
     __tablename__ = "resources"
 
     id = Column(String(), primary_key=True)
+    md5 = Column(String(), nullable=False)
+    sha1 = Column(String(), nullable=False)
     checked_count = Column(Integer(), nullable=False, default=0)
     checked_last_date = Column(DateTime(), nullable=True)
     checked_last_status = Column(Boolean(), nullable=True)
@@ -55,13 +57,24 @@ class ResourcePool:
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
-    def get_package(self, id: str):
+    def get_package(self, id: str) -> Packages:
+        p = None
         try:
             p = self.session.query(Packages).filter(
                     Packages.id == id).one()
-            return p
         except NoResultFound as e:
             logger.error(e)
+        return p
+
+    def get_last_package_create_date(self) -> datetime:
+        p = None
+        try:
+            p = self.session.query(Packages).order_by(
+                Packages.date_created.desc()
+            ).first()
+        except NoResultFound as e:
+            logger.error(e)
+        return p.date_created
 
     def insert_package(self, id: str, date_created: datetime):
         p = Packages(
@@ -74,10 +87,13 @@ class ResourcePool:
         except IntegrityError as e:
             logger.error(e)
             self.session.rollback()
+            raise e
 
-    def insert_resource(self, id: str):
+    def insert_resource(self, id: str, md5: str, sha1: str):
         r = Resources(
-            id=id
+            id=id,
+            md5=md5,
+            sha1=sha1,
         )
         try:
             self.session.add(r)
@@ -85,3 +101,14 @@ class ResourcePool:
         except IntegrityError as e:
             logger.error(e)
             self.session.rollback()
+            raise e
+
+    def get_resource(self, id: str) -> Resources:
+        p = None
+        try:
+            p = self.session.query(Resources).filter(
+                    Resources.id == id).one()
+        except NoResultFound as e:
+            logger.error(e)
+        return p
+
