@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+:Mod: config
+
+:Synopsis:
+
+:Author:
+    servilla
+
+:Created:
+    5/12/20
+"""
+
+
+class Config:
+    LOCK_FILE = "<PATH>/pinchme.lock"
+    PACKAGE_POOL = "pool.pkl"
+
+    # PASTA resource registry database connection information
+    DB_USER = "<USER>"
+    DB_PW = "<PASSWORD>"
+    DB_DB = "pasta"
+    DB_DRIVER = "postgres+psycopg2"
+
+    PINCHME_DB = "<PATH>/pinchme.sqlite"
+    PINCHME_TEST_DB = "<PATH>>/pinchme.sqlite"
