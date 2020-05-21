@@ -16,7 +16,7 @@ import datetime
 
 import pytest
 
-from pinchme import dp_resources
+from pinchme import pasta_resource_registry
 
 
 def test_package_query():
@@ -41,7 +41,55 @@ def test_package_query():
         "ORDER BY date_created ASC LIMIT 10"
     )
 
-    packages = dp_resources.get_packages(sql)
+    packages = pasta_resource_registry.query(sql)
     assert len(packages) == 10
     for package in packages:
         assert package in test_data
+
+
+def test_resource_query():
+    test_data = [
+        (
+            "https://pasta.lternet.edu/package/metadata/eml/edi/1/1",
+            "metadata",
+            None,
+            "412e30ed380fafdf8654ae7495d1f3f6",
+            "e698c128e4fdbc18767e467026349afbb30423db",
+        ),
+        (
+            "https://pasta.lternet.edu/package/report/eml/edi/1/1",
+            "report",
+            None,
+            "711efe73e09a02832d693c23abefb94f",
+            "5c4e60e12d814148b7647f348c362ab4b4678245",
+        ),
+        (
+            "https://pasta.lternet.edu/package/data/eml/edi/1/1/482fef41e108b34ad816e96423711470",
+            "data",
+            "482fef41e108b34ad816e96423711470",
+            "9cbb385955353ef614b8f300602c4b8c",
+            "f494400be17e301e9388bd542cfb9b2c91caaef3",
+        ),
+        (
+            "https://pasta.lternet.edu/package/data/eml/edi/1/1/cba4645e845957d015008e7bccf4f902",
+            "data",
+            "cba4645e845957d015008e7bccf4f902",
+            "85a4466056f5fce9255ca28fe6d1827a",
+            "c1d6e1099634dd36f4e40b7da2558b12dc45b149",
+        ),
+    ]
+
+    sql = (
+        "SELECT datapackagemanager.resource_registry.resource_id, "
+        "datapackagemanager.resource_registry.resource_type, "
+        "datapackagemanager.resource_registry.entity_id, "
+        "datapackagemanager.resource_registry.md5_checksum, "
+        "datapackagemanager.resource_registry.sha1_checksum "
+        "FROM datapackagemanager.resource_registry "
+        "WHERE resource_type<>'dataPackage' AND package_id='edi.1.1'"
+    )
+
+    resources = pasta_resource_registry.query(sql)
+    assert len(resources) == 4
+    for resource in resources:
+        assert resource in test_data
