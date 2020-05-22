@@ -23,6 +23,7 @@ class Config:
     DB_PW = "<PASSWORD>"
     DB_DB = "pasta"
     DB_DRIVER = "postgres+psycopg2"
+    DB_HOST = "package.lternet.edu"
 
     PINCHME_DB = "<PATH>/pinchme.sqlite"
     PINCHME_TEST_DB = "<PATH>>/pinchme.sqlite"
