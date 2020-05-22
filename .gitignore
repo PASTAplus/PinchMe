@@ -132,3 +132,4 @@ dmypy.json
 # Project ignores
 .idea
 config.py
+*.sqlite
