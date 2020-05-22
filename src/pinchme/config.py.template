@@ -12,7 +12,7 @@
 :Created:
     5/12/20
 """
-
+import datetime
 
 class Config:
     LOCK_FILE = "<PATH>/pinchme.lock"
@@ -26,3 +26,5 @@ class Config:
 
     PINCHME_DB = "<PATH>/pinchme.sqlite"
     PINCHME_TEST_DB = "<PATH>>/pinchme.sqlite"
+
+    START_DATE = datetime.datetime(2013, 1, 1, 0, 0, 0, 0)
