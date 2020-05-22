@@ -33,4 +33,5 @@ def query(sql: str) -> list:
         logger.warning(e)
     except Exception as e:
         logger.error(e)
+        raise e
     return rs
