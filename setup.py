@@ -25,8 +25,8 @@ with open(path.join(here, 'LICENSE'), encoding='utf-8') as f:
 
 setup(
     name="pinchme",
-    version="2020.05.20",
-    description="Perform PASTA+ resource intgity analysis",
+    version="2020.05.22",
+    description="Perform PASTA+ resource integrity analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="PASTA+ project",
@@ -41,10 +41,9 @@ setup(
         "click >= 7.1.1",
         "daiquiri >= 2.1.1",
         "sqlalchemy >= 1.3.16",
-#        "sqlite >= 3.31.1",
         "pendulum >= 2.1.0"
         ],
-    entry_points={"console_scripts": ["pinchme=pinchme.pinchme:main"]},
+    entry_points={"console_scripts": ["pinchme=pinchme.pinchy:main"]},
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
     ],
