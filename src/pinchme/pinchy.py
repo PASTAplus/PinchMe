@@ -69,6 +69,17 @@ def valid_md5(resource: Resources) -> bool:
         md5 = hashlib.md5(data).hexdigest()
         if md5 == resource.md5:
             status = True
+            msg = f"Resource '{resource_path}' is valid"
+            logger.info(msg)
+        else:
+            msg = (
+                f"Resource '{resource_path}' is not valid; "
+                f"expected '{resource.md5}', but got '{md5}'"
+            )
+            logger.error(msg)
+    else:
+        msg = f"Resource '{resource_path}' not found"
+        logger.error(msg)
 
     return status
 
