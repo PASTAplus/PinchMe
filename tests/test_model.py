@@ -110,7 +110,12 @@ def test_insert_get_package(rp, clean_up):
 
 def test_insert_get_resource(rp, clean_up):
     rp.insert_resource(
-        RESOURCE_ID, PACKAGE_ID, RESOURCE_TYPE, RESOURCE_NAME, RESOURCE_MD5, RESOURCE_SHA1
+        RESOURCE_ID,
+        PACKAGE_ID,
+        RESOURCE_TYPE,
+        RESOURCE_NAME,
+        RESOURCE_MD5,
+        RESOURCE_SHA1,
     )
     r = rp.get_resource(RESOURCE_ID)
     assert isinstance(r, Resources)
@@ -157,7 +162,12 @@ def test_get_clean_packages(rp, clean_up):
 
 def test_set_dirty_resource(rp, clean_up):
     rp.insert_resource(
-        RESOURCE_ID, PACKAGE_ID, RESOURCE_TYPE, RESOURCE_NAME, RESOURCE_MD5, RESOURCE_SHA1
+        RESOURCE_ID,
+        PACKAGE_ID,
+        RESOURCE_TYPE,
+        RESOURCE_NAME,
+        RESOURCE_MD5,
+        RESOURCE_SHA1,
     )
     r = rp.get_resource(RESOURCE_ID)
     assert not r.dirty
@@ -170,7 +180,12 @@ def test_get_clean_resources(rp, clean_up):
     pre = len(TEST_RESOURCE_DATA)
     for resource in TEST_RESOURCE_DATA:
         rp.insert_resource(
-            resource[0], resource[1], resource[2], resource[3], resource[4], resource[5]
+            resource[0],
+            resource[1],
+            resource[2],
+            resource[3],
+            resource[4],
+            resource[5],
         )
     rp.set_dirty_resource(RESOURCE_ID)
     r = rp.get_clean_resources()
@@ -181,7 +196,12 @@ def test_get_clean_resources(rp, clean_up):
 def test_clean_all_resources(rp, clean_up):
     for resource in TEST_RESOURCE_DATA:
         rp.insert_resource(
-            resource[0], resource[1], resource[2], resource[3], resource[4], resource[5]
+            resource[0],
+            resource[1],
+            resource[2],
+            resource[3],
+            resource[4],
+            resource[5],
         )
         rp.set_dirty_resource(resource[0])
     for resource in TEST_RESOURCE_DATA:
@@ -196,9 +216,34 @@ def test_clean_all_resources(rp, clean_up):
 def test_get_package_resources(rp, clean_up):
     for resource in TEST_RESOURCE_DATA:
         rp.insert_resource(
-            resource[0], resource[1], resource[2], resource[3], resource[4], resource[5]
+            resource[0],
+            resource[1],
+            resource[2],
+            resource[3],
+            resource[4],
+            resource[5],
         )
     resources = rp.get_package_resources(PACKAGE_ID)
     for resource in resources:
         assert PACKAGE_ID in resource.pid
 
+
+def test_set_status_resource(rp, clean_up):
+    rp.insert_resource(
+        RESOURCE_ID,
+        PACKAGE_ID,
+        RESOURCE_TYPE,
+        RESOURCE_NAME,
+        RESOURCE_MD5,
+        RESOURCE_SHA1,
+    )
+    r = rp.get_resource(RESOURCE_ID)
+    status = True
+    date = datetime.now()
+    count = r.checked_count + 1
+    rp.set_status_resource(r.id, count, date, status)
+
+    r = rp.get_resource(RESOURCE_ID)
+    assert r.checked_last_status
+    assert r.checked_last_date == date
+    assert r.checked_count == count

@@ -196,3 +196,23 @@ class ResourcePool:
         except NoResultFound as e:
             logger.error(e)
             raise e
+
+    def set_status_resource(
+        self, id: str, count: int, date: datetime, status: bool
+    ):
+        try:
+            r = (
+                self.session.query(Resources)
+                .filter(Resources.id == id)
+                .update(
+                    {
+                        Resources.checked_count: count,
+                        Resources.checked_last_date: date,
+                        Resources.checked_last_status: status
+                    },
+                )
+            )
+            self.session.commit()
+        except NoResultFound as e:
+            logger.error(e)
+            raise e
