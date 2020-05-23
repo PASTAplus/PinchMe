@@ -71,10 +71,32 @@ class ResourcePool:
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
-    def get_unvalidated_packages(self) -> list:
+    def get_unvalidated_packages(
+        self, col: str = "date_created", order: str = "asc"
+    ) -> list:
         p = None
+
+        if col == "id":
+            column = Packages.id
+        else:
+            column = Packages.date_created
+
         try:
-            p = self.session.query(Packages).filter(not_(Packages.validated)).all()
+            if order == "desc":
+                p = (
+                    self.session.query(Packages)
+                    .filter(not_(Packages.validated))
+                    .order_by(desc(column))
+                    .all()
+                )
+            else:  # order == "asc":
+                p = (
+                    self.session.query(Packages)
+                    .filter(not_(Packages.validated))
+                    .order_by(asc(column))
+                    .all()
+                )
+
         except NoResultFound as e:
             logger.error(e)
         return p
@@ -113,7 +135,9 @@ class ResourcePool:
 
     def set_unvalidated_packages(self):
         try:
-            p = self.session.query(Packages).update({Packages.validated: False})
+            p = self.session.query(Packages).update(
+                {Packages.validated: False}
+            )
             self.session.commit()
         except NoResultFound as e:
             logger.error(e)
@@ -179,7 +203,9 @@ class ResourcePool:
 
     def set_unvalidated_resources(self):
         try:
-            r = self.session.query(Resources).update({Resources.validated: False})
+            r = self.session.query(Resources).update(
+                {Resources.validated: False}
+            )
             self.session.commit()
         except NoResultFound as e:
             logger.error(e)
@@ -208,7 +234,7 @@ class ResourcePool:
                     {
                         Resources.checked_count: count,
                         Resources.checked_last_date: date,
-                        Resources.checked_last_status: status
+                        Resources.checked_last_status: status,
                     },
                 )
             )

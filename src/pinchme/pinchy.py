@@ -13,19 +13,18 @@
     5/12/20
 """
 from datetime import datetime
-import hashlib
 import logging
 import os
-from pathlib import Path
 
 import click
 import daiquiri
 
 from pinchme.config import Config
+from pinchme import package_pool
 from pinchme import pasta_resource_registry
+from pinchme import validation
 from pinchme.lock import Lock
 from pinchme.model.resource_db import ResourcePool
-from pinchme.model.resource_db import Resources
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 logfile = cwd + "/pinchme.log"
@@ -53,45 +52,23 @@ SQL_RESOURCE = (
 )
 
 
-def valid_md5(resource: Resources) -> bool:
-    status = False
-    path_head = f"{Config.DATA_STORE}/{resource.pid}"
-    if resource.type == "metadata":
-        resource_path = f"{path_head}/Level-1-EML.xml"
-    elif resource.type == "report":
-        resource_path = f"{path_head}/quality_report.xml"
-    else:  # resource.typ == "data"
-        resource_path = f"{path_head}/{resource.entity_id}"
-
-    if Path(resource_path).exists():
-        msg = f"Validating checksum for resource '{resource_path}'"
-        logger.info(msg)
-        with open(resource_path, "rb") as f:
-            md5 = hashlib.md5()
-            while chunk := f.read(8192):
-                md5.update(chunk)
-        if md5 == resource.md5:
-            status = True
-            msg = f"Resource '{resource_path}' is valid"
-            logger.info(msg)
-        else:
-            msg = (
-                f"Resource '{resource_path}' is not valid; "
-                f"expected '{resource.md5}', but got '{md5}'"
-            )
-            logger.error(msg)
-    else:
-        msg = f"Resource '{resource_path}' not found"
-        logger.error(msg)
-    return status
-
-
 help_limit = "Query limit to PASTA+ resource registry"
+help_alg = (
+        "Package pool selection algorithm: either 'random', 'id_ascending', "
+        "'id_descending', 'create_ascending', or 'create_descending'"
+)
 
 
 @click.command()
 @click.option("-l", "--limit", default=100, help=help_limit)
-def main(limit: int):
+@click.option("-a", "--algorithm", default="create_ascending", help=help_alg)
+def main(limit: int, algorithm: str):
+    """
+        PinchMe
+
+        \b
+        A PASTA+ data package integrity checker
+    """
     lock = Lock(Config.LOCK_FILE)
     if lock.locked:
         logger.error("Lock file {} exists, exiting...".format(lock.lock_file))
@@ -125,7 +102,7 @@ def main(limit: int):
                 resource[4],
             )
 
-    packages = rp.get_unvalidated_packages()
+    packages = package_pool.get_unvalidated(rp, algorithm=algorithm)
     if packages is None:
         rp.set_unvalidated_packages()
         rp.set_unvalidated_resources()
@@ -134,7 +111,7 @@ def main(limit: int):
             resources = rp.get_package_resources(package.id)
             for resource in resources:
                 if not resource.validated:
-                    status = valid_md5(resource)
+                    status = validation.valid_md5(resource)
                     date = datetime.now()
                     count = resource.checked_count + 1
                     rp.set_status_resource(resource.id, count, date, status)

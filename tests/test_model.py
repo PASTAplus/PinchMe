@@ -13,7 +13,7 @@
     5/20/20
 """
 from datetime import datetime
-import pathlib
+from pathlib import Path
 
 import pendulum
 import pytest
@@ -90,7 +90,7 @@ def rp():
 @pytest.fixture()
 def clean_up():
     yield
-    pathlib.Path(Config.PINCHME_TEST_DB).unlink(missing_ok=True)
+    Path(Config.PINCHME_TEST_DB).unlink(missing_ok=True)
 
 
 def test_pasta_db_connection():
@@ -98,7 +98,7 @@ def test_pasta_db_connection():
 
 
 def test_resource_pool_create(rp, clean_up):
-    assert pathlib.Path(Config.PINCHME_TEST_DB).exists()
+    assert Path(Config.PINCHME_TEST_DB).exists()
 
 
 def test_insert_get_package(rp, clean_up):
@@ -158,6 +158,8 @@ def test_get_unvalidated_packages(rp, clean_up):
     p = rp.get_unvalidated_packages()
     post = len(p)
     assert pre == post + 1
+    for i in p:
+        print(i.id, i.date_created)
 
 
 def test_set_validated_resource(rp, clean_up):
