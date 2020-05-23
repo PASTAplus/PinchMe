@@ -14,6 +14,7 @@
 """
 import daiquiri
 from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import NoResultFound
 
 from pinchme.config import Config
@@ -30,6 +31,8 @@ def query(sql: str) -> list:
     try:
         rs = connection.execute(sql).fetchall()
     except NoResultFound as e:
+        logger.warning(e)
+    except OperationalError as e:
         logger.warning(e)
     except Exception as e:
         logger.error(e)
