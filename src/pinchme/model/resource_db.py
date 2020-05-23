@@ -44,7 +44,7 @@ class Packages(Base):
 
     id = Column(String(), primary_key=True)
     date_created = Column(DateTime(), nullable=False)
-    dirty = Column(Boolean(), nullable=False, default=False)
+    validated = Column(Boolean(), nullable=False, default=False)
 
 
 class Resources(Base):
@@ -59,7 +59,7 @@ class Resources(Base):
     checked_count = Column(Integer(), nullable=False, default=0)
     checked_last_date = Column(DateTime(), nullable=True)
     checked_last_status = Column(Boolean(), nullable=True)
-    dirty = Column(Boolean(), nullable=False, default=False)
+    validated = Column(Boolean(), nullable=False, default=False)
 
 
 class ResourcePool:
@@ -71,10 +71,10 @@ class ResourcePool:
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
-    def get_clean_packages(self) -> list:
+    def get_unvalidated_packages(self) -> list:
         p = None
         try:
-            p = self.session.query(Packages).filter(not_(Packages.dirty)).all()
+            p = self.session.query(Packages).filter(not_(Packages.validated)).all()
         except NoResultFound as e:
             logger.error(e)
         return p
@@ -111,32 +111,32 @@ class ResourcePool:
             self.session.rollback()
             raise e
 
-    def set_clean_packages(self):
+    def set_unvalidated_packages(self):
         try:
-            p = self.session.query(Packages).update({Packages.dirty: False})
+            p = self.session.query(Packages).update({Packages.validated: False})
             self.session.commit()
         except NoResultFound as e:
             logger.error(e)
             raise e
 
-    def set_dirty_package(self, id: str):
+    def set_validated_package(self, id: str):
         try:
             p = (
                 self.session.query(Packages)
                 .filter(Packages.id == id)
-                .update({Packages.dirty: True})
+                .update({Packages.validated: True})
             )
             self.session.commit()
         except NoResultFound as e:
             logger.error(e)
             raise e
 
-    def get_clean_resources(self) -> list:
+    def get_unvalidated_resources(self) -> list:
         r = None
         try:
             r = (
                 self.session.query(Resources)
-                .filter(not_(Resources.dirty))
+                .filter(not_(Resources.validated))
                 .all()
             )
         except NoResultFound as e:
@@ -177,20 +177,20 @@ class ResourcePool:
             self.session.rollback()
             raise e
 
-    def set_clean_resources(self):
+    def set_unvalidated_resources(self):
         try:
-            r = self.session.query(Resources).update({Resources.dirty: False})
+            r = self.session.query(Resources).update({Resources.validated: False})
             self.session.commit()
         except NoResultFound as e:
             logger.error(e)
             raise e
 
-    def set_dirty_resource(self, id: str):
+    def set_validated_resource(self, id: str):
         try:
             r = (
                 self.session.query(Resources)
                 .filter(Resources.id == id)
-                .update({Resources.dirty: True})
+                .update({Resources.validated: True})
             )
             self.session.commit()
         except NoResultFound as e:

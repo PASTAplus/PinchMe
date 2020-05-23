@@ -141,26 +141,26 @@ def test_get_last_package_create_date_from_empty_db(rp, clean_up):
     assert d is None
 
 
-def test_set_dirty_package(rp, clean_up):
+def test_set_validated_package(rp, clean_up):
     rp.insert_package(PACKAGE_ID, pendulum.now())
     p = rp.get_package(PACKAGE_ID)
-    assert not p.dirty
-    rp.set_dirty_package(PACKAGE_ID)
+    assert not p.validated
+    rp.set_validated_package(PACKAGE_ID)
     p = rp.get_package(PACKAGE_ID)
-    assert p.dirty
+    assert p.validated
 
 
-def test_get_clean_packages(rp, clean_up):
+def test_get_unvalidated_packages(rp, clean_up):
     pre = len(TEST_PACKAGE_DATA)
     for package in TEST_PACKAGE_DATA:
         rp.insert_package(package[0], package[1])
-    rp.set_dirty_package(PACKAGE_ID)
-    p = rp.get_clean_packages()
+    rp.set_validated_package(PACKAGE_ID)
+    p = rp.get_unvalidated_packages()
     post = len(p)
     assert pre == post + 1
 
 
-def test_set_dirty_resource(rp, clean_up):
+def test_set_validated_resource(rp, clean_up):
     rp.insert_resource(
         RESOURCE_ID,
         PACKAGE_ID,
@@ -170,13 +170,13 @@ def test_set_dirty_resource(rp, clean_up):
         RESOURCE_SHA1,
     )
     r = rp.get_resource(RESOURCE_ID)
-    assert not r.dirty
-    rp.set_dirty_resource(RESOURCE_ID)
+    assert not r.validated
+    rp.set_validated_resource(RESOURCE_ID)
     r = rp.get_resource(RESOURCE_ID)
-    assert r.dirty
+    assert r.validated
 
 
-def test_get_clean_resources(rp, clean_up):
+def test_get_unvalidated_resources(rp, clean_up):
     pre = len(TEST_RESOURCE_DATA)
     for resource in TEST_RESOURCE_DATA:
         rp.insert_resource(
@@ -187,13 +187,13 @@ def test_get_clean_resources(rp, clean_up):
             resource[4],
             resource[5],
         )
-    rp.set_dirty_resource(RESOURCE_ID)
-    r = rp.get_clean_resources()
+    rp.set_validated_resource(RESOURCE_ID)
+    r = rp.get_unvalidated_resources()
     post = len(r)
     assert pre == post + 1
 
 
-def test_clean_all_resources(rp, clean_up):
+def test_unvalidated_all_resources(rp, clean_up):
     for resource in TEST_RESOURCE_DATA:
         rp.insert_resource(
             resource[0],
@@ -203,14 +203,14 @@ def test_clean_all_resources(rp, clean_up):
             resource[4],
             resource[5],
         )
-        rp.set_dirty_resource(resource[0])
+        rp.set_validated_resource(resource[0])
     for resource in TEST_RESOURCE_DATA:
         r = rp.get_resource(resource[0])
-        assert r.dirty
-    rp.set_clean_resources()
+        assert r.validated
+    rp.set_unvalidated_resources()
     for resource in TEST_RESOURCE_DATA:
         r = rp.get_resource(resource[0])
-        assert not r.dirty
+        assert not r.validated
 
 
 def test_get_package_resources(rp, clean_up):
