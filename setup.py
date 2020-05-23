@@ -25,7 +25,7 @@ with open(path.join(here, 'LICENSE'), encoding='utf-8') as f:
 
 setup(
     name="pinchme",
-    version="2020.05.22",
+    version="2020.05.23",
     description="Perform PASTA+ resource integrity analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",
