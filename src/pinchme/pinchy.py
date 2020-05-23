@@ -60,13 +60,16 @@ def valid_md5(resource: Resources) -> bool:
         resource_path = f"{path_head}/Level-1-EML.xml"
     elif resource.type == "report":
         resource_path = f"{path_head}/quality_report.xml"
-    else: # resource.typ == "data"
+    else:  # resource.typ == "data"
         resource_path = f"{path_head}/{resource.entity_id}"
 
     if Path(resource_path).exists():
+        msg = f"Validating checksum for resource '{resource_path}'"
+        logger.info(msg)
         with open(resource_path, "rb") as f:
-            data = f.read()
-        md5 = hashlib.md5(data).hexdigest()
+            md5 = hashlib.md5()
+            while chunk := f.read(8192):
+                md5.update(chunk)
         if md5 == resource.md5:
             status = True
             msg = f"Resource '{resource_path}' is valid"
@@ -80,7 +83,6 @@ def valid_md5(resource: Resources) -> bool:
     else:
         msg = f"Resource '{resource_path}' not found"
         logger.error(msg)
-
     return status
 
 
@@ -96,7 +98,7 @@ def main(limit: int):
         return 1
     else:
         lock.acquire()
-        logger.warning("Lock file {} acquired".format(lock.lock_file))
+        logger.info("Lock file {} acquired".format(lock.lock_file))
 
     # Update local resource pool with next set of package identifiers
     rp = ResourcePool(Config.PINCHME_DB)
@@ -123,24 +125,24 @@ def main(limit: int):
                 resource[4],
             )
 
-    packages = rp.get_clean_packages()
+    packages = rp.get_unvalidated_packages()
     if packages is None:
-        rp.set_clean_packages()
-        rp.set_clean_resources()
+        rp.set_unvalidated_packages()
+        rp.set_unvalidated_resources()
     else:
         for package in packages:
             resources = rp.get_package_resources(package.id)
             for resource in resources:
-                if not resource.dirty:
+                if not resource.validated:
                     status = valid_md5(resource)
                     date = datetime.now()
                     count = resource.checked_count + 1
                     rp.set_status_resource(resource.id, count, date, status)
-                    rp.set_dirty_resource(resource.id)
-            rp.set_dirty_package(package.id)
+                    rp.set_validated_resource(resource.id)
+            rp.set_validated_package(package.id)
 
     lock.release()
-    logger.warning("Lock file {} released".format(lock.lock_file))
+    logger.info("Lock file {} released".format(lock.lock_file))
 
     return 0
 
