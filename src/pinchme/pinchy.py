@@ -18,6 +18,7 @@ import os
 
 import click
 import daiquiri
+from sqlalchemy.exc import IntegrityError
 
 from pinchme.config import Config
 from pinchme import package_pool
@@ -25,6 +26,7 @@ from pinchme import pasta_resource_registry
 from pinchme import validation
 from pinchme.lock import Lock
 from pinchme.model.resource_db import ResourcePool
+
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 logfile = cwd + "/pinchme.log"
@@ -89,18 +91,26 @@ def main(limit: int, algorithm: str):
     sql = SQL_PACKAGE.replace("<DATE>", iso).replace("<LIMIT>", str(limit))
     packages = pasta_resource_registry.query(sql)
     for package in packages:
-        rp.insert_package(package[0], package[1])
+        try:
+            rp.insert_package(package[0], package[1])
+        except IntegrityError as e:
+            msg = f"Ignoring package '{package[0]}"
+            logger.warn(msg)
         sql = SQL_RESOURCE.replace("<PID>", package[0])
         resources = pasta_resource_registry.query(sql)
         for resource in resources:
-            rp.insert_resource(
-                resource[0],
-                package[0],
-                resource[1],
-                resource[2],
-                resource[3],
-                resource[4],
-            )
+            try:
+                rp.insert_resource(
+                    resource[0],
+                    package[0],
+                    resource[1],
+                    resource[2],
+                    resource[3],
+                    resource[4],
+                )
+            except IntegrityError as e:
+                msg = f"Ignoring resource '{resource[0]}'"
+                logger.warn(msg)
 
     packages = package_pool.get_unvalidated(rp, algorithm=algorithm)
     if packages is None:
