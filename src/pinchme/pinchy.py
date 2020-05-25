@@ -39,6 +39,13 @@ SQL_PACKAGE = (
     "SELECT datapackagemanager.resource_registry.package_id, "
     "datapackagemanager.resource_registry.date_created "
     "FROM datapackagemanager.resource_registry WHERE "
+    "resource_type='dataPackage' AND package_id='<PID>'"
+)
+
+SQL_PACKAGES = (
+    "SELECT datapackagemanager.resource_registry.package_id, "
+    "datapackagemanager.resource_registry.date_created "
+    "FROM datapackagemanager.resource_registry WHERE "
     "resource_type='dataPackage' AND date_created > '<DATE>' "
     "ORDER BY date_created ASC LIMIT <LIMIT>"
 )
@@ -54,17 +61,25 @@ SQL_RESOURCE = (
 )
 
 
-help_limit = "Query limit to PASTA+ resource registry"
+help_limit = "Query limit to PASTA+ resource registry."
 help_alg = (
-        "Package pool selection algorithm: either 'random', 'id_ascending', "
-        "'id_descending', 'create_ascending', or 'create_descending'"
+    "Package pool selection algorithm: either 'random', 'id_ascending', "
+    "'id_descending', 'create_ascending', or 'create_descending'."
 )
+help_package = (
+                   "Add package (and resources) to validation pool. WARNING: "
+                   "adding data packages out of sequence may alter how new "
+                   "data packages are added to the package pool."
+)
+help_reset = "Reset validated flag on all packages and resources."
 
 
 @click.command()
 @click.option("-l", "--limit", default=100, help=help_limit)
 @click.option("-a", "--algorithm", default="create_ascending", help=help_alg)
-def main(limit: int, algorithm: str):
+@click.option("-p", "--package", default=None, help=help_package)
+@click.option("-r", "--reset", default=False, is_flag=True, help=help_reset)
+def main(limit: int, algorithm: str, package: str, reset: bool):
     """
         PinchMe
 
@@ -79,44 +94,53 @@ def main(limit: int, algorithm: str):
         lock.acquire()
         logger.info("Lock file {} acquired".format(lock.lock_file))
 
-    # Update local resource pool with next set of package identifiers
     rp = ResourcePool(Config.PINCHME_DB)
-    d = rp.get_last_package_create_date()
-    if d is None:
-        iso = Config.START_DATE.isoformat()
-    else:
-        iso = d.isoformat()
 
-    # Update resources for all new package identiifers in the resource pool
-    sql = SQL_PACKAGE.replace("<DATE>", iso).replace("<LIMIT>", str(limit))
-    packages = pasta_resource_registry.query(sql)
-    for package in packages:
-        try:
-            rp.insert_package(package[0], package[1])
-        except IntegrityError as e:
-            msg = f"Ignoring package '{package[0]}"
-            logger.warn(msg)
-        sql = SQL_RESOURCE.replace("<PID>", package[0])
-        resources = pasta_resource_registry.query(sql)
-        for resource in resources:
-            try:
-                rp.insert_resource(
-                    resource[0],
-                    package[0],
-                    resource[1],
-                    resource[2],
-                    resource[3],
-                    resource[4],
-                )
-            except IntegrityError as e:
-                msg = f"Ignoring resource '{resource[0]}'"
-                logger.warn(msg)
-
-    packages = package_pool.get_unvalidated(rp, algorithm=algorithm)
-    if packages is None:
+    if reset:
         rp.set_unvalidated_packages()
         rp.set_unvalidated_resources()
     else:
+        # Update local resource pool with next set of package identifiers
+        d = rp.get_last_package_create_date()
+        if d is None:
+            iso = Config.START_DATE.isoformat()
+        else:
+            iso = d.isoformat()
+
+        # Update resources for all new package identiifers in the resource pool
+        if package is not None:
+            sql = SQL_PACKAGE.replace("<PID>", package)
+        else:
+            sql = SQL_PACKAGES.replace("<DATE>", iso).replace(
+                "<LIMIT>", str(limit)
+            )
+        packages = pasta_resource_registry.query(sql)
+        for package in packages:
+            try:
+                rp.insert_package(package[0], package[1])
+            except IntegrityError as e:
+                msg = f"Ignoring package '{package[0]}"
+                logger.warning(msg)
+            sql = SQL_RESOURCE.replace("<PID>", package[0])
+            resources = pasta_resource_registry.query(sql)
+            for resource in resources:
+                try:
+                    rp.insert_resource(
+                        resource[0],
+                        package[0],
+                        resource[1],
+                        resource[2],
+                        resource[3],
+                        resource[4],
+                    )
+                except IntegrityError as e:
+                    msg = f"Ignoring resource '{resource[0]}'"
+                    logger.warning(msg)
+
+        packages = package_pool.get_unvalidated(rp, algorithm=algorithm)
+        if packages is None:
+            msg = "No new data packages detected"
+            logger.warning(msg)
         for package in packages:
             resources = rp.get_package_resources(package.id)
             for resource in resources:
