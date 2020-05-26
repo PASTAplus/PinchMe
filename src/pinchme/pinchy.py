@@ -50,6 +50,14 @@ SQL_PACKAGES = (
     "ORDER BY date_created ASC LIMIT <LIMIT>"
 )
 
+SQL_PACKAGES_NO_LIMIT = (
+    "SELECT datapackagemanager.resource_registry.package_id, "
+    "datapackagemanager.resource_registry.date_created "
+    "FROM datapackagemanager.resource_registry WHERE "
+    "resource_type='dataPackage' AND date_created > '<DATE>' "
+    "ORDER BY date_created ASC"
+)
+
 SQL_RESOURCE = (
     "SELECT datapackagemanager.resource_registry.resource_id, "
     "datapackagemanager.resource_registry.resource_type, "
@@ -75,7 +83,7 @@ help_reset = "Reset validated flag on all packages and resources."
 
 
 @click.command()
-@click.option("-l", "--limit", default=100, help=help_limit)
+@click.option("-l", "--limit", default=None, help=help_limit)
 @click.option("-a", "--algorithm", default="create_ascending", help=help_alg)
 @click.option("-p", "--package", default=None, help=help_package)
 @click.option("-r", "--reset", default=False, is_flag=True, help=help_reset)
@@ -111,9 +119,12 @@ def main(limit: int, algorithm: str, package: str, reset: bool):
         if package is not None:
             sql = SQL_PACKAGE.replace("<PID>", package)
         else:
-            sql = SQL_PACKAGES.replace("<DATE>", iso).replace(
-                "<LIMIT>", str(limit)
-            )
+            if limit is not None:
+                sql = SQL_PACKAGES.replace("<DATE>", iso).replace(
+                    "<LIMIT>", str(limit)
+                )
+            else:
+                sql = SQL_PACKAGES_NO_LIMIT.replace("<DATE>", iso)
         packages = pasta_resource_registry.query(sql)
         for package in packages:
             try:
