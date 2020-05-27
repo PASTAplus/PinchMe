@@ -14,23 +14,104 @@
 """
 import daiquiri
 
+from sqlalchemy.orm.query import Query
+from sqlalchemy.exc import IntegrityError
+
+from pinchme import pasta_resource_registry
+from pinchme.config import Config
 from pinchme.model.resource_db import ResourcePool
+
 
 logger = daiquiri.getLogger(__name__)
 
+SQL_PACKAGE = ("SELECT datapackagemanager.resource_registry.package_id, "
+               "datapackagemanager.resource_registry.date_created "
+               "FROM datapackagemanager.resource_registry WHERE "
+               "resource_type='dataPackage' AND package_id='<PID>'")
 
-def get_unvalidated(
-    rp: ResourcePool, algorithm: str = "create_ascending"
-) -> list:
-    packages = list()
+SQL_PACKAGES = ("SELECT datapackagemanager.resource_registry.package_id, "
+                "datapackagemanager.resource_registry.date_created "
+                "FROM datapackagemanager.resource_registry WHERE "
+                "resource_type='dataPackage' AND date_created > '<DATE>' "
+                "ORDER BY date_created ASC LIMIT <LIMIT>")
+
+SQL_PACKAGES_NO_LIMIT = (
+    "SELECT datapackagemanager.resource_registry.package_id, "
+    "datapackagemanager.resource_registry.date_created "
+    "FROM datapackagemanager.resource_registry WHERE "
+    "resource_type='dataPackage' AND date_created > '<DATE>' "
+    "ORDER BY date_created ASC")
+
+SQL_RESOURCE = ("SELECT datapackagemanager.resource_registry.resource_id, "
+                "datapackagemanager.resource_registry.resource_type, "
+                "datapackagemanager.resource_registry.entity_id, "
+                "datapackagemanager.resource_registry.md5_checksum, "
+                "datapackagemanager.resource_registry.sha1_checksum "
+                "FROM datapackagemanager.resource_registry "
+                "WHERE resource_type<>'dataPackage' AND package_id='<PID>'")
+
+
+def add_new_packages(identifier: str, limit: int, ):
+    rp = ResourcePool(Config.PINCHME_DB)
+    # Update local resource pool with next set of package identifiers
+    d = rp.get_last_package_create_date()
+    if d is None:
+        iso = Config.START_DATE.isoformat()
+    else:
+        iso = d.isoformat()
+
+    # Update resources for all new package identifiers in the resource pool
+    if identifier is not None:
+        sql = SQL_PACKAGE.replace("<PID>", identifier)
+    else:
+        if limit is not None:
+            sql = SQL_PACKAGES.replace("<DATE>", iso).replace(
+                "<LIMIT>", str(limit)
+            )
+        else:
+            sql = SQL_PACKAGES_NO_LIMIT.replace("<DATE>", iso)
+    packages = pasta_resource_registry.query(sql)
+    for package in packages:
+        try:
+            rp.insert_package(package[0], package[1])
+        except IntegrityError as e:
+            msg = f"Ignoring package '{package[0]}"
+            logger.warning(msg)
+        sql = SQL_RESOURCE.replace("<PID>", package[0])
+        resources = pasta_resource_registry.query(sql)
+        for resource in resources:
+            try:
+                rp.insert_resource(
+                    resource[0],
+                    package[0],
+                    resource[1],
+                    resource[2],
+                    resource[3],
+                    resource[4],
+                )
+            except IntegrityError as e:
+                msg = f"Ignoring resource '{resource[0]}'"
+                logger.warning(msg)
+
+
+def get_unvalidated(algorithm: str = "create_ascending") -> Query:
+    rp = ResourcePool(Config.PINCHME_DB)
     if algorithm == "random":
-        pass
+        packages = None
     elif algorithm == "id_ascending":
         packages = rp.get_unvalidated_packages(col="id", order="asc")
     elif algorithm == "id_descending":
         packages = rp.get_unvalidated_packages(col="id", order="desc")
     elif algorithm == "create_ascending":
         packages = rp.get_unvalidated_packages(col="date_created", order="asc")
-    elif algorithm == "create_descending":
+    else:  # algorithm == "create_descending":
         packages = rp.get_unvalidated_packages(col="date_created", order="desc")
     return packages
+
+
+def reset_all():
+    rp = ResourcePool(Config.PINCHME_DB)
+    rp.set_unvalidated_packages()
+    logger.info("Reset all packages to unvalidated")
+    rp.set_unvalidated_resources()
+    logger.info("Reset all resources to unvalidated")

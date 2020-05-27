@@ -30,6 +30,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.query import Query
 from sqlalchemy.sql import not_
 
 from pinchme.config import Config
@@ -73,7 +74,7 @@ class ResourcePool:
 
     def get_unvalidated_packages(
         self, col: str = "date_created", order: str = "asc"
-    ) -> list:
+    ) -> Query:
         p = None
 
         if col == "id":
@@ -115,7 +116,7 @@ class ResourcePool:
             logger.error(e)
         return d
 
-    def get_package(self, id: str) -> Packages:
+    def get_package(self, id: str) -> Query:
         p = None
         try:
             p = self.session.query(Packages).filter(Packages.id == id).one()
@@ -155,7 +156,18 @@ class ResourcePool:
             logger.error(e)
             raise e
 
-    def get_unvalidated_resources(self) -> list:
+    def get_failed_resources(self) -> Query:
+        r = None
+        try:
+            r = (
+                self.session.query(Resources)
+                .filter(Resources.checked_last_status == 0).all()
+            )
+        except NoResultFound as e:
+            logger.error(e)
+        return r
+
+    def get_unvalidated_resources(self) -> Query:
         r = None
         try:
             r = (
@@ -167,7 +179,7 @@ class ResourcePool:
             logger.error(e)
         return r
 
-    def get_package_resources(self, pid: str) -> list:
+    def get_package_resources(self, pid: str) -> Query:
         r = None
         try:
             r = (
@@ -179,7 +191,7 @@ class ResourcePool:
             logger.error(e)
         return r
 
-    def get_resource(self, id: str) -> Resources:
+    def get_resource(self, id: str) -> Query:
         p = None
         try:
             p = self.session.query(Resources).filter(Resources.id == id).one()

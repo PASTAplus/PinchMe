@@ -14,6 +14,7 @@
 """
 import daiquiri
 from sqlalchemy import create_engine
+from sqlalchemy.engine import ResultProxy
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -23,10 +24,19 @@ from pinchme.config import Config
 logger = daiquiri.getLogger(__name__)
 
 
-def query(sql: str) -> list:
-    rs = list()
-    db = Config.DB_DRIVER + '://' + Config.DB_USER + ':' + Config.DB_PW + '@'\
-         + Config.DB_HOST + '/' + Config.DB_DB
+def query(sql: str) -> ResultProxy:
+    rs = None
+    db = (
+        Config.DB_DRIVER
+        + "://"
+        + Config.DB_USER
+        + ":"
+        + Config.DB_PW
+        + "@"
+        + Config.DB_HOST
+        + "/"
+        + Config.DB_DB
+    )
     connection = create_engine(db)
     try:
         rs = connection.execute(sql).fetchall()

@@ -12,16 +12,51 @@
 :Created:
     5/23/20
 """
+from datetime import datetime
 import hashlib
 from pathlib import Path
 
 import daiquiri
+from sqlalchemy.orm.query import Query
 
 from pinchme.config import Config
-from pinchme.model.resource_db import Resources
+from pinchme.model.resource_db import Resources, ResourcePool
 
 
 logger = daiquiri.getLogger(__name__)
+
+
+def integrity_check_packages(packages: Query):
+    rp = ResourcePool(Config.PINCHME_DB)
+    if packages is None:
+        msg = "No new data packages detected"
+        logger.warning(msg)
+    for package in packages:
+        resources = rp.get_package_resources(package.id)
+        for resource in resources:
+            if not resource.validated:
+                status = valid_md5(resource)
+                date = datetime.now()
+                count = resource.checked_count + 1
+                rp.set_status_resource(resource.id, count, date, status)
+                rp.set_validated_resource(resource.id)
+        rp.set_validated_package(package.id)
+
+
+def recheck_failed_resources():
+    rp = ResourcePool(Config.PINCHME_DB)
+    resources = rp.get_failed_resources()
+    for resource in resources:
+        status = valid_md5(resource)
+        date = datetime.now()
+        count = resource.checked_count + 1
+        rp.set_status_resource(resource.id, count, date, status)
+        rp.set_validated_resource(resource.id)
+
+
+def show_failed_resources() -> Query:
+    rp = ResourcePool(Config.PINCHME_DB)
+    return rp.get_failed_resources()
 
 
 def valid_md5(resource: Resources) -> bool:
