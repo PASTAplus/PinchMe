@@ -38,7 +38,7 @@ help_alg = (
     "Package pool selection algorithm: either 'random', 'id_ascending', "
     "'id_descending', 'create_ascending', or 'create_descending'."
 )
-help_pid = (
+help_identifier = (
     "Add package (and resources) to validation pool. WARNING: "
     "adding data packages out of sequence may alter how new "
     "data packages are added to the package pool."
@@ -48,10 +48,13 @@ help_failed = "Rerun integrity checks against all failed resources."
 help_show = "Show all failed resources."
 
 
-@click.command()
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
+
+@click.command(context_settings=CONTEXT_SETTINGS)
 @click.option("-l", "--limit", default=None, help=help_limit)
 @click.option("-a", "--algorithm", default="create_ascending", help=help_alg)
-@click.option("-i", "--identifier", default=None, help=help_pid)
+@click.option("-i", "--identifier", default=None, help=help_identifier)
 @click.option("-r", "--reset", default=False, is_flag=True, help=help_reset)
 @click.option("-f", "--failed", default=False, is_flag=True, help=help_failed)
 @click.option("-s", "--show", default=False, is_flag=True, help=help_show)
