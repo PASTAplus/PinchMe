@@ -1,0 +1,13 @@
+name: pinchme
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8.2
+  - click
+  - pendulum
+  - pytest
+  - sqlalchemy
+  - sqlite
+  - psycopg2
+prefix: /home/servilla/anaconda3/envs/pinchme
