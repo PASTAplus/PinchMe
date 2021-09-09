@@ -46,5 +46,5 @@ dependencies:
   - xz=5.2.5
   - zlib=1.2.11
   - pip:
-    - pinchme==2020.5.22
+    - pinchme==2020.5.27
 prefix: /home/servilla/anaconda3/envs/pinchme
