@@ -16,7 +16,7 @@ pytest==6.2.5
 python-dateutil==2.8.2
 python-json-logger==2.0.1
 pytzdata==2020.1
-setuptools==58.0.3
+setuptools==65.5.1
 six==1.16.0
 SQLAlchemy==1.4.23
 toml==0.10.2
