@@ -3,11 +3,11 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.8.2
+  - python=3.11
   - click
   - pendulum
   - pytest
-  - sqlalchemy
+  - sqlalchemy=1.4.51
   - sqlite
   - psycopg2
 prefix: /home/servilla/anaconda3/envs/pinchme
