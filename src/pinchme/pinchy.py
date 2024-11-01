@@ -12,7 +12,6 @@
 :Created:
     5/12/20
 """
-import logging
 import os
 
 import click
@@ -22,13 +21,12 @@ from pinchme.config import Config
 from pinchme import package_pool
 from pinchme import validation
 from pinchme.lock import Lock
-from pinchme.model.resource_db import ResourcePool
 
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 logfile = cwd + "/pinchme.log"
 daiquiri.setup(
-    level=logging.INFO, outputs=(daiquiri.output.File(Config.LOG_FILE), "stdout",)
+    level=Config.LOG_LEVEL, outputs=(daiquiri.output.File(Config.LOG_FILE), "stdout",)
 )
 logger = daiquiri.getLogger(__name__)
 

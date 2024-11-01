@@ -13,11 +13,13 @@
     5/12/20
 """
 import datetime
+import logging
 
 class Config:
     LOCK_FILE = "<PATH>/pinchme.lock"
-    PACKAGE_POOL = "pool.pkl"
+
     LOG_FILE = "<PATH>/pinchme.log"
+    LOG_LEVEL = logging.WARN
 
     # PASTA resource registry database connection information
     DB_USER = "<USER>"
