@@ -13,6 +13,7 @@
     5/23/20
 """
 from datetime import datetime
+from time import sleep
 import hashlib
 from pathlib import Path
 
@@ -20,38 +21,49 @@ import daiquiri
 from sqlalchemy.orm.query import Query
 
 from pinchme.config import Config
+import pinchme.mimemail as mimemail
 from pinchme.model.resource_db import Resources, ResourcePool
 
 
 logger = daiquiri.getLogger(__name__)
 
 
-def integrity_check_packages(packages: Query):
+def integrity_check_packages(packages: Query, delay: int):
     rp = ResourcePool(Config.PINCHME_DB)
     if packages is None:
-        msg = "No new data packages detected"
+        msg = "No data packages specified for validation"
         logger.warning(msg)
     for package in packages:
         resources = rp.get_package_resources(package.id)
         for resource in resources:
-            if not resource.validated:
-                status = valid_md5(resource)
-                date = datetime.now()
-                count = resource.checked_count + 1
-                rp.set_status_resource(resource.id, count, date, status)
-                rp.set_validated_resource(resource.id)
+            valid = valid_md5(resource)
+            date = datetime.now()
+            count = resource.checked_count + 1
+            rp.set_status_resource(resource.id, count, date, valid)
+            rp.set_validated_resource(resource.id)
+            if not valid:
+                subject = f"Integrity Error: {package.id}"
+                msg = f"Resource '{resource.id}' failed integrity check"
+                mimemail.send_mail(subject, msg)
+            sleep(delay)
         rp.set_validated_package(package.id)
 
 
-def recheck_failed_resources():
+def recheck_failed_resources(delay: int):
     rp = ResourcePool(Config.PINCHME_DB)
     resources = rp.get_failed_resources()
     for resource in resources:
-        status = valid_md5(resource)
+        pid = resource.pid
+        valid = valid_md5(resource)
         date = datetime.now()
         count = resource.checked_count + 1
-        rp.set_status_resource(resource.id, count, date, status)
+        rp.set_status_resource(resource.id, count, date, valid)
         rp.set_validated_resource(resource.id)
+        if not valid:
+            subject = f"Integrity Error: {pid}"
+            msg = f"Resource '{resource.id}' failed integrity check"
+            mimemail.send_mail(subject, msg)
+        sleep(delay)
 
 
 def show_failed_resources() -> Query:
@@ -61,12 +73,14 @@ def show_failed_resources() -> Query:
 
 def valid_md5(resource: Resources) -> bool:
     status = False
-    path_head = f"{Config.DATA_STORE}/{resource.pid}"
     if resource.type == "metadata":
+        path_head = f"{Config.METADATA_STORE}/{resource.pid}"
         resource_path = f"{path_head}/Level-1-EML.xml"
     elif resource.type == "report":
+        path_head = f"{Config.METADATA_STORE}/{resource.pid}"
         resource_path = f"{path_head}/quality_report.xml"
-    else:  # resource.typ == "data"
+    else:  # resource.type == "data"
+        path_head = f"{Config.DATA_STORE}/{resource.pid}"
         resource_path = f"{path_head}/{resource.entity_id}"
 
     if Path(resource_path).exists():

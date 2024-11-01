@@ -25,6 +25,7 @@ from sqlalchemy import (
     ForeignKey,
     desc,
     asc,
+    func
 )
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
@@ -83,7 +84,14 @@ class ResourcePool:
             column = Packages.date_created
 
         try:
-            if order == "desc":
+            if order == "random":
+                p = (
+                    self.session.query(Packages)
+                    .filter(not_(Packages.validated))
+                    .order_by(func.random())
+                    .all()
+                )
+            elif order == "desc":
                 p = (
                     self.session.query(Packages)
                     .filter(not_(Packages.validated))
@@ -101,6 +109,41 @@ class ResourcePool:
         except NoResultFound as e:
             logger.error(e)
         return p
+
+    def get_packages(
+            self, col: str = "date_created", order: str = "asc"
+    ) -> Query:
+        p = None
+
+        if col == "id":
+            column = Packages.id
+        else:
+            column = Packages.date_created
+
+        try:
+            if order == "random":
+                p = (
+                    self.session.query(Packages)
+                    .order_by(func.random())
+                    .all()
+                )
+            elif order == "desc":
+                p = (
+                    self.session.query(Packages)
+                    .order_by(desc(column))
+                    .all()
+                )
+            else:  # order == "asc":
+                p = (
+                    self.session.query(Packages)
+                    .order_by(asc(column))
+                    .all()
+                )
+
+        except NoResultFound as e:
+            logger.error(e)
+        return p
+
 
     def get_last_package_create_date(self) -> datetime:
         d = None

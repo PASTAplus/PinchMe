@@ -64,7 +64,7 @@ def add_new_packages(identifier: str, limit: int, ):
     if identifier is not None:
         sql = SQL_PACKAGE.replace("<PID>", identifier)
     else:
-        if limit is not None:
+        if limit > 0:
             sql = SQL_PACKAGES.replace("<DATE>", iso).replace(
                 "<LIMIT>", str(limit)
             )
@@ -97,7 +97,7 @@ def add_new_packages(identifier: str, limit: int, ):
 def get_unvalidated(algorithm: str = "create_ascending") -> Query:
     rp = ResourcePool(Config.PINCHME_DB)
     if algorithm == "random":
-        packages = None
+        packages = rp.get_unvalidated_packages(col="id", order="asc")
     elif algorithm == "id_ascending":
         packages = rp.get_unvalidated_packages(col="id", order="asc")
     elif algorithm == "id_descending":
@@ -109,9 +109,29 @@ def get_unvalidated(algorithm: str = "create_ascending") -> Query:
     return packages
 
 
+def get_packages(algorithm: str = "create_ascending") -> Query:
+    rp = ResourcePool(Config.PINCHME_DB)
+    if algorithm == "random":
+        packages = rp.get_packages(col="id", order="random")
+    elif algorithm == "id_ascending":
+        packages = rp.get_packages(col="id", order="asc")
+    elif algorithm == "id_descending":
+        packages = rp.get_packages(col="id", order="desc")
+    elif algorithm == "create_ascending":
+        packages = rp.get_packages(col="date_created", order="asc")
+    else:  # algorithm == "create_descending":
+        packages = rp.get_packages(col="date_created", order="desc")
+    return packages
+
+
 def reset_all():
     rp = ResourcePool(Config.PINCHME_DB)
     rp.set_unvalidated_packages()
     logger.info("Reset all packages to unvalidated")
     rp.set_unvalidated_resources()
     logger.info("Reset all resources to unvalidated")
+
+
+def get_package(pid: str) -> Query:
+    rp = ResourcePool(Config.PINCHME_DB)
+    return rp.get_package(pid)
