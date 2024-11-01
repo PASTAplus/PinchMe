@@ -14,6 +14,7 @@
     5/20/20
 """
 from datetime import datetime
+from enum import unique
 
 import daiquiri
 from sqlalchemy import (
@@ -56,8 +57,8 @@ class Resources(Base):
     pid = Column(String(), nullable=False)
     type = Column(String(), nullable=False)
     entity_id = Column(String(), nullable=True)
-    md5 = Column(String(), nullable=False)
-    sha1 = Column(String(), nullable=False)
+    md5 = Column(String(), nullable=True)
+    sha1 = Column(String(), nullable=True)
     checked_count = Column(Integer(), nullable=False, default=0)
     checked_last_date = Column(DateTime(), nullable=True)
     checked_last_status = Column(Boolean(), nullable=True)
