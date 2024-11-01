@@ -173,6 +173,7 @@ class ResourcePool:
         try:
             self.session.add(p)
             self.session.commit()
+            logger.info(p)
         except IntegrityError as e:
             logger.error(e)
             self.session.rollback()
