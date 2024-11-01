@@ -17,6 +17,7 @@ import datetime
 class Config:
     LOCK_FILE = "<PATH>/pinchme.lock"
     PACKAGE_POOL = "pool.pkl"
+    LOG_FILE = "<PATH>/pinchme.log"
 
     # PASTA resource registry database connection information
     DB_USER = "<USER>"

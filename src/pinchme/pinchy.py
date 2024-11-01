@@ -28,7 +28,7 @@ from pinchme.model.resource_db import ResourcePool
 cwd = os.path.dirname(os.path.realpath(__file__))
 logfile = cwd + "/pinchme.log"
 daiquiri.setup(
-    level=logging.INFO, outputs=(daiquiri.output.File(logfile), "stdout",)
+    level=logging.INFO, outputs=(daiquiri.output.File(Config.LOG_FILE), "stdout",)
 )
 logger = daiquiri.getLogger(__name__)
 
