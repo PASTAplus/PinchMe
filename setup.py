@@ -36,12 +36,12 @@ setup(
     include_package_data=True,
     exclude_package_data={"": ["settings.py, properties.py, config.py"],},
     package_dir={"": "src"},
-    python_requires=">3.8.*",
+    python_requires=">3.11",
     install_requires=[
-        "click >= 7.1.1",
-        "daiquiri >= 2.1.1",
-        "sqlalchemy >= 1.3.16",
-        "pendulum >= 2.1.0"
+        "click >= 8.1.7",
+        "daiquiri >= 3.0.0",
+        "sqlalchemy >= 1.4.51",
+        "pendulum >= 2.1.2"
         ],
     entry_points={"console_scripts": ["pinchme=pinchme.pinchy:main"]},
     classifiers=[

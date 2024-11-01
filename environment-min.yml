@@ -1,9 +1,10 @@
 name: pinchme
 channels:
-  - conda-forge
   - defaults
+  - conda-forge
 dependencies:
   - python=3.11
+  - daiquiri
   - click
   - pendulum
   - pytest
