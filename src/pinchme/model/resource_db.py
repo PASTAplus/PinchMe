@@ -173,7 +173,7 @@ class ResourcePool:
         try:
             self.session.add(p)
             self.session.commit()
-            logger.info(p)
+            logger.info(f"Inserting package: {p.id}")
         except IntegrityError as e:
             logger.error(e)
             self.session.rollback()
