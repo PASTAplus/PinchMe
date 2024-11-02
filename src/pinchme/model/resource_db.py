@@ -163,7 +163,7 @@ class ResourcePool:
     def get_package(self, id: str) -> Query:
         p = None
         try:
-            p = self.session.query(Packages).filter(Packages.id == id).one()
+            p = self.session.query(Packages).filter(Packages.id == id)
         except NoResultFound as e:
             logger.error(e)
         return p
