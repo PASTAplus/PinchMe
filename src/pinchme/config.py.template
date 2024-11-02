@@ -15,6 +15,7 @@
 import datetime
 import logging
 
+
 class Config:
     LOCK_FILE = "<PATH>/pinchme.lock"
 
