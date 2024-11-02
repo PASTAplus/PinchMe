@@ -28,7 +28,7 @@ from pinchme.model.resource_db import Resources, ResourcePool
 logger = daiquiri.getLogger(__name__)
 
 
-def integrity_check_packages(packages: Query, delay: int):
+def integrity_check_packages(packages: Query, delay: int, email: bool):
     rp = ResourcePool(Config.PINCHME_DB)
     if packages is None:
         msg = "No data packages specified for validation"
@@ -41,7 +41,7 @@ def integrity_check_packages(packages: Query, delay: int):
             count = resource.checked_count + 1
             rp.set_status_resource(resource.id, count, date, valid)
             rp.set_validated_resource(resource.id)
-            if not valid:
+            if not valid and email:
                 subject = f"Integrity Error: {package.id}"
                 msg = f"Resource '{resource.id}' failed integrity check"
                 mimemail.send_mail(subject, msg)

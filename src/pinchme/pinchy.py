@@ -104,7 +104,7 @@ def main(
     if validate:
         for pid in validate:
             package = package_pool.get_package(pid)
-            validation.integrity_check_packages(package, delay)
+            validation.integrity_check_packages(package, delay, email)
         return 0
 
     # Validate all package resources
@@ -116,11 +116,14 @@ def main(
         lock.acquire()
         logger.info(f"Lock file {lock.lock_file} acquired")
 
+        # Add new packages to the validation pool and validate first
         package_pool.add_new_packages(identifier, limit)
         packages = package_pool.get_unvalidated(algorithm)
-        validation.integrity_check_packages(packages, delay)
+        validation.integrity_check_packages(packages, delay, email)
+
+        # Validate all packages and their resources
         packages = package_pool.get_packages(algorithm)
-        validation.integrity_check_packages(packages, delay)
+        validation.integrity_check_packages(packages, delay, email)
 
         lock.release()
         logger.info(f"Lock file {lock.lock_file} released")
