@@ -14,6 +14,7 @@
 """
 import os
 from pathlib import Path
+from datetime import datetime
 
 import click
 import daiquiri
@@ -125,18 +126,23 @@ def main(
             logger.error(f"Lock file {lock.lock_file} exists, exiting...")
             return 1
         else:
-            lock.acquire()
-            logger.info(f"Lock file {lock.lock_file} acquired")
+            start = f"Bootstrap validation started: {datetime.now().isoformat()}"
+            logger.warn(start)
 
-            Path(Config.PINCHME_DB).unlink(missing_ok=True)
+            lock.acquire()
+            logger.warn(f"Lock file {lock.lock_file} acquired")
 
             # Add all packages to the validation pool, validate, then exit
+            Path(Config.PINCHME_DB).unlink(missing_ok=True)
             package_pool.add_new_packages(identifier, limit, verbose)
             packages = package_pool.get_packages(algorithm="create_ascending")
             validation.integrity_check_packages(packages, delay, email, verbose)
 
             lock.release()
-            logger.info(f"Lock file {lock.lock_file} released")
+            logger.warn(f"Lock file {lock.lock_file} released")
+
+            end = f"Bootstrap validation ended: {datetime.now().isoformat()}"
+            logger.warn(end)
 
             return 0
 
@@ -146,6 +152,9 @@ def main(
         logger.error(f"Lock file {lock.lock_file} exists, exiting...")
         return 1
     else:
+        start = f"Bootstrap validation started: {datetime.now().isoformat()}"
+        logger.warn(start)
+
         lock.acquire()
         logger.info(f"Lock file {lock.lock_file} acquired")
 
@@ -161,7 +170,10 @@ def main(
         lock.release()
         logger.info(f"Lock file {lock.lock_file} released")
 
-        return 0
+        end = f"Bootstrap validation ended: {datetime.now().isoformat()}"
+        logger.warn(end)
+
+    return 0
 
 
 if __name__ == "__main__":
