@@ -127,10 +127,10 @@ def main(
             return 1
         else:
             start = f"Bootstrap validation started: {datetime.now().isoformat()}"
-            logger.warn(start)
+            logger.warning(start)
 
             lock.acquire()
-            logger.warn(f"Lock file {lock.lock_file} acquired")
+            logger.warning(f"Lock file {lock.lock_file} acquired")
 
             # Add all packages to the validation pool, validate, then exit
             Path(Config.PINCHME_DB).unlink(missing_ok=True)
@@ -139,10 +139,10 @@ def main(
             validation.integrity_check_packages(packages, delay, email, verbose)
 
             lock.release()
-            logger.warn(f"Lock file {lock.lock_file} released")
+            logger.warning(f"Lock file {lock.lock_file} released")
 
             end = f"Bootstrap validation ended: {datetime.now().isoformat()}"
-            logger.warn(end)
+            logger.warning(end)
 
             return 0
 
@@ -153,7 +153,7 @@ def main(
         return 1
     else:
         start = f"Bootstrap validation started: {datetime.now().isoformat()}"
-        logger.warn(start)
+        logger.warning(start)
 
         lock.acquire()
         logger.info(f"Lock file {lock.lock_file} acquired")
@@ -171,7 +171,7 @@ def main(
         logger.info(f"Lock file {lock.lock_file} released")
 
         end = f"Bootstrap validation ended: {datetime.now().isoformat()}"
-        logger.warn(end)
+        logger.warning(end)
 
     return 0
 
