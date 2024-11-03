@@ -157,7 +157,7 @@ def main(
         return 1
     else:
         start = datetime.now()
-        msg = f"Bootstrap validation started: {start.isoformat()}"
+        msg = f"Validation started: {start.isoformat()}"
         logger.warning(msg)
 
         lock.acquire()
@@ -176,7 +176,7 @@ def main(
         logger.info(f"Lock file {lock.lock_file} released")
 
         end = datetime.now()
-        msg = f"Bootstrap validation ended: {end.isoformat()}"
+        msg = f"Validation ended: {end.isoformat()}"
         logger.warning(msg)
 
         logger.warning(f"Elapsed time: {end - start}")
