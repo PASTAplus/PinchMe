@@ -52,7 +52,7 @@ SQL_RESOURCE = ("SELECT datapackagemanager.resource_registry.resource_id, "
                 "WHERE resource_type<>'dataPackage' AND package_id='<PID>'")
 
 
-def add_new_packages(identifier: str, limit: int, ):
+def add_new_packages(identifier: str, limit: int, verbose: int):
     rp = ResourcePool(Config.PINCHME_DB)
     # Update local resource pool with next set of package identifiers
     d = rp.get_last_package_create_date()
@@ -73,14 +73,18 @@ def add_new_packages(identifier: str, limit: int, ):
             sql = SQL_PACKAGES_NO_LIMIT.replace("<DATE>", iso)
     packages = pasta_resource_registry.query(sql)
     for package in packages:
+        if verbose >= 1:
+            print(f"Adding package '{package[0]}'")
         try:
-            rp.insert_package(package[0], package[1])
+             rp.insert_package(package[0], package[1])
         except IntegrityError as e:
             msg = f"Ignoring package '{package[0]}"
             logger.warning(msg)
         sql = SQL_RESOURCE.replace("<PID>", package[0])
         resources = pasta_resource_registry.query(sql)
         for resource in resources:
+            if verbose >=3:
+                print(f"Adding resource '{resource[0]}'")
             try:
                 rp.insert_resource(
                     resource[0],

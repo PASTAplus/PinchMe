@@ -13,6 +13,7 @@
     5/12/20
 """
 import os
+from pathlib import Path
 
 import click
 import daiquiri
@@ -35,6 +36,7 @@ help_algorithm = (
     "Package pool selection algorithm: either 'create_ascending', 'create_descending', 'id_ascending', "
     " 'id_descending', or 'random' (default)."
 )
+help_bootstrap = "Create a new resource database and run validation against all packages."
 help_delay = "Delay (seconds) between package integrity checks."
 help_email = "Email on integrity error."
 help_failed = "Rerun integrity checks against all failed resources, then exit."
@@ -44,12 +46,14 @@ help_pool = "Add new packages to validation pool, then exit."
 help_reset = "Reset validated flag on all packages/resources, then exit."
 help_show = "Show all failed resources. Error codes: 0b0001=MD5 || 0b0010=SHA1 || 0b0100=SIZE || 0b1000=NOTFOUND"
 help_validate = "Validate specified package(s), then exit."
+help_verbose = "Print activity to stdout."
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
-@click.option("-a", "--algorithm", default="create_ascending", help=help_algorithm)
+@click.option("-a", "--algorithm", default="random", help=help_algorithm)
+@click.option("-b", "--bootstrap", default=False, is_flag=True, help=help_bootstrap)
 @click.option("-d", "--delay", default=0, help=help_delay)
 @click.option("-e", "--email", default=False, is_flag=True, help=help_email)
 @click.option("-f", "--failed", default=False, is_flag=True, help=help_failed)
@@ -59,8 +63,10 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 @click.option("-r", "--reset", default=False, is_flag=True, help=help_reset)
 @click.option("-s", "--show", default=False, is_flag=True, help=help_show)
 @click.option("-v", "--validate", multiple=True, help=help_validate)
+@click.option("-V", "--verbose", count=True, default=0, help=help_verbose)
 def main(
         algorithm: str,
+        bootstrap: bool,
         delay: int,
         email: bool,
         failed: bool,
@@ -69,7 +75,8 @@ def main(
         pool: bool,
         reset: bool,
         show: bool,
-        validate: tuple
+        validate: tuple,
+        verbose: int
 ):
     """
         PinchMe
@@ -83,7 +90,7 @@ def main(
         return 0
 
     if failed:
-        validation.recheck_failed_resources(delay, email)
+        validation.recheck_failed_resources(delay, email, verbose)
         return 0
 
     if show:
@@ -101,16 +108,38 @@ def main(
         return 0
 
     if pool:
-        package_pool.add_new_packages(identifier, limit)
+        package_pool.add_new_packages(identifier, limit, verbose)
         return 0
 
     if len(validate) > 0:
         for pid in validate:
             package = package_pool.get_package(pid)
-            validation.integrity_check_packages(package, delay, email)
+            validation.integrity_check_packages(package, delay, email, verbose)
         return 0
 
-    # Validate all package resources
+    if bootstrap:
+        # Validate all package resources
+        lock = Lock(Config.LOCK_FILE)
+        if lock.locked:
+            logger.error(f"Lock file {lock.lock_file} exists, exiting...")
+            return 1
+        else:
+            lock.acquire()
+            logger.info(f"Lock file {lock.lock_file} acquired")
+
+            Path(Config.PINCHME_DB).unlink(missing_ok=True)
+
+            # Add all packages to the validation pool, validate, then exit
+            package_pool.add_new_packages(identifier, limit, verbose)
+            packages = package_pool.get_packages(algorithm="create_ascending")
+            validation.integrity_check_packages(packages, delay, email, verbose)
+
+            lock.release()
+            logger.info(f"Lock file {lock.lock_file} released")
+
+            return 0
+
+    # Validate all new and existing package resources
     lock = Lock(Config.LOCK_FILE)
     if lock.locked:
         logger.error(f"Lock file {lock.lock_file} exists, exiting...")
@@ -120,13 +149,13 @@ def main(
         logger.info(f"Lock file {lock.lock_file} acquired")
 
         # Add new packages to the validation pool and validate first
-        package_pool.add_new_packages(identifier, limit)
-        packages = package_pool.get_unvalidated(algorithm)
-        validation.integrity_check_packages(packages, delay, email)
+        package_pool.add_new_packages(identifier, limit, verbose)
+        packages = package_pool.get_unvalidated(algorithm="create_ascending")
+        validation.integrity_check_packages(packages, delay, email, verbose)
 
         # Validate all packages and their resources
         packages = package_pool.get_packages(algorithm)
-        validation.integrity_check_packages(packages, delay, email)
+        validation.integrity_check_packages(packages, delay, email, verbose)
 
         lock.release()
         logger.info(f"Lock file {lock.lock_file} released")

@@ -28,14 +28,18 @@ from pinchme.model.resource_db import Resources, ResourcePool
 logger = daiquiri.getLogger(__name__)
 
 
-def integrity_check_packages(packages: Query, delay: int, email: bool):
+def integrity_check_packages(packages: Query, delay: int, email: bool, verbose: int):
     rp = ResourcePool(Config.PINCHME_DB)
     if packages is None:
         msg = "No data packages specified for validation"
         logger.warning(msg)
     for package in packages:
+        if verbose >= 1:
+            print(f"Validating package '{package.id}'")
         resources = rp.get_package_resources(package.id)
         for resource in resources:
+            if verbose >= 3:
+                print(f"Validating resource '{resource.id}'")
             invalid = 0b0000
             pid = resource.pid
             invalid = invalid | valid_md5(resource)
@@ -54,10 +58,12 @@ def integrity_check_packages(packages: Query, delay: int, email: bool):
         rp.set_validated_package(package.id)
 
 
-def recheck_failed_resources(delay: int, email: bool):
+def recheck_failed_resources(delay: int, email: bool, verbose: int):
     rp = ResourcePool(Config.PINCHME_DB)
     resources = rp.get_failed_resources()
     for resource in resources:
+        if verbose >= 1:
+            print(f"Revalidating resource '{resource.id}'")
         invalid = 0b0000
         pid = resource.pid
         invalid = invalid | valid_md5(resource)
