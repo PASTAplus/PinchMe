@@ -82,7 +82,8 @@ def main(
         PinchMe
 
         \b
-        A PASTA+ data package integrity checker
+        A PASTA data package and resource integrity checker. Running "pinchme" without any options will
+        validate all new and existing data packages and resources, and then exit.
     """
 
     if reset:
