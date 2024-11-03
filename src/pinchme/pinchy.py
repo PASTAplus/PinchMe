@@ -126,8 +126,9 @@ def main(
             logger.error(f"Lock file {lock.lock_file} exists, exiting...")
             return 1
         else:
-            start = f"Bootstrap validation started: {datetime.now().isoformat()}"
-            logger.warning(start)
+            start = datetime.now()
+            msg = f"Bootstrap validation started: {start.isoformat()}"
+            logger.warning(msg)
 
             lock.acquire()
             logger.warning(f"Lock file {lock.lock_file} acquired")
@@ -141,8 +142,11 @@ def main(
             lock.release()
             logger.warning(f"Lock file {lock.lock_file} released")
 
-            end = f"Bootstrap validation ended: {datetime.now().isoformat()}"
-            logger.warning(end)
+            end = datetime.now()
+            msg = f"Bootstrap validation ended: {end.isoformat()}"
+            logger.warning(msg)
+
+            logger.warning(f"Elapsed time: {end - start}")
 
             return 0
 
@@ -152,8 +156,9 @@ def main(
         logger.error(f"Lock file {lock.lock_file} exists, exiting...")
         return 1
     else:
-        start = f"Bootstrap validation started: {datetime.now().isoformat()}"
-        logger.warning(start)
+        start = datetime.now()
+        msg = f"Bootstrap validation started: {start.isoformat()}"
+        logger.warning(msg)
 
         lock.acquire()
         logger.info(f"Lock file {lock.lock_file} acquired")
@@ -170,10 +175,13 @@ def main(
         lock.release()
         logger.info(f"Lock file {lock.lock_file} released")
 
-        end = f"Bootstrap validation ended: {datetime.now().isoformat()}"
-        logger.warning(end)
+        end = datetime.now()
+        msg = f"Bootstrap validation ended: {end.isoformat()}"
+        logger.warning(msg)
 
-    return 0
+        logger.warning(f"Elapsed time: {end - start}")
+
+        return 0
 
 
 if __name__ == "__main__":
