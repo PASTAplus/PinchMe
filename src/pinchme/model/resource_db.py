@@ -59,9 +59,10 @@ class Resources(Base):
     entity_id = Column(String(), nullable=True)
     md5 = Column(String(), nullable=True)
     sha1 = Column(String(), nullable=True)
+    bytesize = Column(Integer(), nullable=True)
     checked_count = Column(Integer(), nullable=False, default=0)
     checked_last_date = Column(DateTime(), nullable=True)
-    checked_last_status = Column(Boolean(), nullable=True)
+    checked_last_status = Column(Integer(), nullable=True)
     validated = Column(Boolean(), nullable=False, default=False)
 
 
@@ -206,7 +207,7 @@ class ResourcePool:
         try:
             r = (
                 self.session.query(Resources)
-                .filter(Resources.checked_last_status == 0).all()
+                .filter(Resources.checked_last_status != 0).all()
             )
         except NoResultFound as e:
             logger.error(e)
@@ -245,10 +246,10 @@ class ResourcePool:
         return p
 
     def insert_resource(
-        self, id: str, pid: str, type: str, entity_id: str, md5: str, sha1: str
+        self, id: str, pid: str, type: str, entity_id: str, md5: str, sha1: str, bytesize: int
     ):
         r = Resources(
-            id=id, pid=pid, type=type, entity_id=entity_id, md5=md5, sha1=sha1,
+            id=id, pid=pid, type=type, entity_id=entity_id, md5=md5, sha1=sha1, bytesize=bytesize
         )
         try:
             self.session.add(r)
@@ -281,7 +282,7 @@ class ResourcePool:
             raise e
 
     def set_status_resource(
-        self, id: str, count: int, date: datetime, status: bool
+        self, id: str, count: int, date: datetime, status: int
     ):
         try:
             r = (

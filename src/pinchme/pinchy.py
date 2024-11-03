@@ -42,7 +42,7 @@ help_limit = "Limit the number of new packages added to the validation pool."
 help_identifier = "Add specified package to validation pool, then exit."
 help_pool = "Add new packages to validation pool, then exit."
 help_reset = "Reset validated flag on all packages/resources, then exit."
-help_show = "Show all failed resources."
+help_show = "Show all failed resources. Error codes: 0b0001=MD5 || 0b0010=SHA1 || 0b0100=SIZE || 0b1000=NOTFOUND"
 help_validate = "Validate specified package(s), then exit."
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -83,17 +83,20 @@ def main(
         return 0
 
     if failed:
-        validation.recheck_failed_resources(delay)
+        validation.recheck_failed_resources(delay, email)
         return 0
 
     if show:
         resources = validation.show_failed_resources()
         if resources:
-            print("pid, resource_id, checked_count, checked_last_date")
+            print("pid, resource_id, checked_count, checked_last_date, checked_last_status")
         else:
             print("No failed resources")
         for resource in resources:
-            msg = f"{resource.pid}, {resource.id}, {resource.checked_count}, {resource.checked_last_date}"
+            msg = (
+                f"{resource.pid}, {resource.id}, {resource.checked_count}, {resource.checked_last_date}, "
+                f"0b{resource.checked_last_status:04b}"
+            )
             print(msg)
         return 0
 
@@ -101,7 +104,7 @@ def main(
         package_pool.add_new_packages(identifier, limit)
         return 0
 
-    if validate:
+    if len(validate) > 0:
         for pid in validate:
             package = package_pool.get_package(pid)
             validation.integrity_check_packages(package, delay, email)
