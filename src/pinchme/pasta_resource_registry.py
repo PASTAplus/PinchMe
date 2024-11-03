@@ -12,6 +12,7 @@
 :Created:
     5/12/20
 """
+import time
 import urllib.parse
 
 import daiquiri
@@ -26,7 +27,7 @@ from pinchme.config import Config
 logger = daiquiri.getLogger(__name__)
 
 
-def query(sql: str) -> ResultProxy:
+def query(sql: str, retries: int=3, delay: int=5) -> ResultProxy:
     rs = None
     db = (
         Config.DB_DRIVER
@@ -40,13 +41,17 @@ def query(sql: str) -> ResultProxy:
         + Config.DB_DB
     )
     connection = create_engine(db)
-    try:
-        rs = connection.execute(sql).fetchall()
-    except NoResultFound as e:
-        logger.warning(e)
-    except OperationalError as e:
-        logger.warning(e)
-    except Exception as e:
-        logger.error(e)
-        raise e
-    return rs
+    attempt = 0
+    while attempt < retries:
+        try:
+            rs = connection.execute(sql).fetchall()
+            return rs
+        except OperationalError as e:
+            msg = f"Connection attempt {attempt + 1} failed: {e}"
+            logger.warning(msg)
+            attempt += 1
+            if attempt < retries:
+                logger.warning(f"Retrying in {delay} seconds")
+                time.sleep(delay)
+    raise OperationalError(f"Failed to connect to database after {retries} attempts")
+
