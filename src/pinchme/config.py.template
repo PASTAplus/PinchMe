@@ -34,10 +34,6 @@ class Config:
 
     START_DATE = datetime.datetime(2013, 1, 1, 0, 0, 0, 0)
 
-    METADATA_STORE = "<PATH_TO_METADATA>"
-    REPORT_STORE = "<PATH_TO_QUALITY_REPORT>"
-    DATA_STORE = "<PATH_TO_DATA_ENTITY>"
-
     # Email configuration
     RELAY_HOST = 'RELAY_HOST'
     RELAY_PASSWORD = 'RELAY_PASSWORD'

@@ -60,6 +60,7 @@ class Resources(Base):
     md5 = Column(String(), nullable=True)
     sha1 = Column(String(), nullable=True)
     bytesize = Column(Integer(), nullable=True)
+    location = Column(String(), nullable=True)
     checked_count = Column(Integer(), nullable=False, default=0)
     checked_last_date = Column(DateTime(), nullable=True)
     checked_last_status = Column(Integer(), nullable=True)
@@ -246,10 +247,10 @@ class ResourcePool:
         return p
 
     def insert_resource(
-        self, id: str, pid: str, type: str, entity_id: str, md5: str, sha1: str, bytesize: int
+        self, id: str, pid: str, type: str, entity_id: str, md5: str, sha1: str, bytesize: int, location: str
     ):
         r = Resources(
-            id=id, pid=pid, type=type, entity_id=entity_id, md5=md5, sha1=sha1, bytesize=bytesize
+            id=id, pid=pid, type=type, entity_id=entity_id, md5=md5, sha1=sha1, bytesize=bytesize, location=location
         )
         try:
             self.session.add(r)

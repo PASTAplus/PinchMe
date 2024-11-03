@@ -88,14 +88,16 @@ def show_failed_resources() -> Query:
 
 def valid_md5(resource: Resources) -> int:
     status = 0b000
+
+    resource_location = resource.location
     if resource.type == "metadata":
-        path_head = f"{Config.METADATA_STORE}/{resource.pid}"
+        path_head = f"{resource_location}/{resource.pid}"
         resource_path = f"{path_head}/Level-1-EML.xml"
     elif resource.type == "report":
-        path_head = f"{Config.METADATA_STORE}/{resource.pid}"
+        path_head = f"{resource_location}/{resource.pid}"
         resource_path = f"{path_head}/quality_report.xml"
     else:  # resource.type == "data"
-        path_head = f"{Config.DATA_STORE}/{resource.pid}"
+        path_head = f"{resource_location}/{resource.pid}"
         resource_path = f"{path_head}/{resource.entity_id}"
 
     if Path(resource_path).exists():
@@ -125,14 +127,16 @@ def valid_md5(resource: Resources) -> int:
 
 def valid_sha1(resource: Resources) -> int:
     status = 0b0000
+
+    resource_location = resource.location
     if resource.type == "metadata":
-        path_head = f"{Config.METADATA_STORE}/{resource.pid}"
+        path_head = f"{resource_location}/{resource.pid}"
         resource_path = f"{path_head}/Level-1-EML.xml"
     elif resource.type == "report":
-        path_head = f"{Config.METADATA_STORE}/{resource.pid}"
+        path_head = f"{resource_location}/{resource.pid}"
         resource_path = f"{path_head}/quality_report.xml"
     else:  # resource.type == "data"
-        path_head = f"{Config.DATA_STORE}/{resource.pid}"
+        path_head = f"{resource_location}/{resource.pid}"
         resource_path = f"{path_head}/{resource.entity_id}"
 
     if Path(resource_path).exists():
@@ -162,14 +166,16 @@ def valid_sha1(resource: Resources) -> int:
 
 def valid_size(resource: Resources) -> int:
     status = 0b0000
+
+    resource_location = resource.location
     if resource.type == "metadata":
-        path_head = f"{Config.METADATA_STORE}/{resource.pid}"
+        path_head = f"{resource_location}/{resource.pid}"
         resource_path = f"{path_head}/Level-1-EML.xml"
     elif resource.type == "report":
-        path_head = f"{Config.METADATA_STORE}/{resource.pid}"
+        path_head = f"{resource_location}/{resource.pid}"
         resource_path = f"{path_head}/quality_report.xml"
     else:  # resource.type == "data"
-        path_head = f"{Config.DATA_STORE}/{resource.pid}"
+        path_head = f"{resource_location}/{resource.pid}"
         resource_path = f"{path_head}/{resource.entity_id}"
 
     if Path(resource_path).exists():

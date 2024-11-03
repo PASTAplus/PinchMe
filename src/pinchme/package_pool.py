@@ -47,7 +47,8 @@ SQL_RESOURCE = ("SELECT datapackagemanager.resource_registry.resource_id, "
                 "datapackagemanager.resource_registry.entity_id, "
                 "datapackagemanager.resource_registry.md5_checksum, "
                 "datapackagemanager.resource_registry.sha1_checksum, "
-                "datapackagemanager.resource_registry.resource_size "
+                "datapackagemanager.resource_registry.resource_size, "
+                "datapackagemanager.resource_registry.resource_location "
                 "FROM datapackagemanager.resource_registry "
                 "WHERE resource_type<>'dataPackage' AND package_id='<PID>'")
 
@@ -94,6 +95,7 @@ def add_new_packages(identifier: str, limit: int, verbose: int):
                     resource[3],
                     resource[4],
                     resource[5],
+                    resource[6]
                 )
             except IntegrityError as e:
                 msg = f"Ignoring resource '{resource[0]}'"
