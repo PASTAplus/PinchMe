@@ -161,7 +161,7 @@ def main(
         logger.warning(msg)
 
         lock.acquire()
-        logger.info(f"Lock file {lock.lock_file} acquired")
+        logger.warning(f"Lock file {lock.lock_file} acquired")
 
         # Add new packages to the validation pool and validate first
         package_pool.add_new_packages(identifier, limit, verbose)
