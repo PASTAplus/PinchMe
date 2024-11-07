@@ -98,7 +98,7 @@ def main(
     if show:
         resources = validation.show_failed_resources()
         if resources:
-            print("pid, resource_id, resource_created_date, checked_count, checked_last_date, checked_last_status")
+            print("pid, resource_id, resource_date_created, checked_count, checked_last_date, checked_last_status")
         else:
             print("No failed resources")
         for package, resource in resources:
