@@ -207,7 +207,8 @@ class ResourcePool:
         r = None
         try:
             r = (
-                self.session.query(Resources)
+                self.session.query(Packages, Resources)
+                .join(Resources, Packages.id == Resources.pid)
                 .filter(Resources.checked_last_status != 0).all()
             )
         except NoResultFound as e:
