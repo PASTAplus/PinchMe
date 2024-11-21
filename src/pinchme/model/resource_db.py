@@ -302,3 +302,19 @@ class ResourcePool:
         except NoResultFound as e:
             logger.error(e)
             raise e
+
+    def update_resource(self, id: str, md5: str, sha1: str, bytesize: int):
+        try:
+            r = (
+                self.session.query(Resources)
+                .filter(Resources.id == id)
+                .update({
+                    Resources.md5: md5,
+                    Resources.sha1: sha1,
+                    Resources.bytesize: bytesize,
+                })
+            )
+            self.session.commit()
+        except NoResultFound as e:
+            logger.error(e)
+            raise e

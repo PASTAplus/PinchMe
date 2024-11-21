@@ -143,3 +143,23 @@ def reset_all():
 def get_package(pid: str) -> Query:
     rp = ResourcePool(Config.PINCHME_DB)
     return rp.get_package(pid)
+
+
+def update_package(pid: str, verbose: int):
+    package = get_package(pid)
+    if package.count() == 1:
+        rp = ResourcePool(Config.PINCHME_DB)
+        sql = SQL_RESOURCE.replace("<PID>", pid)
+        resources = pasta_resource_registry.query(sql)
+        for resource in resources:
+            rp.update_resource(
+                resource[0],
+                resource[3],
+                resource[4],
+                resource[5]
+            )
+            if verbose >= 1:
+                print(f"Updating resource {resource[0]}: {resource[3]}, {resource[4]}, {resource[5]}")
+    else:
+        msg = f"Package '{pid}' not in package pool"
+        logger.warning(msg)

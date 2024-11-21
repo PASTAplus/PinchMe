@@ -45,7 +45,8 @@ help_limit = "Limit the number of new packages added to the validation pool."
 help_identifier = "Add specified package to validation pool, then exit."
 help_pool = "Add new packages to validation pool, then exit."
 help_reset = "Reset validated flag on all packages/resources, then exit."
-help_show = "Show all failed resources. Error codes: 0b0001=MD5 || 0b0010=SHA1 || 0b0100=SIZE || 0b1000=NOTFOUND"
+help_show = "Show all failed resources. Error codes: 0b0001=MD5 || 0b0010=SHA1 || 0b0100=SIZE || 0b1000=NOTFOUND."
+help_update = "Update package(s) with new metadata from resource registry."
 help_validate = "Validate specified package(s), then exit."
 help_verbose = "Print activity to stdout."
 
@@ -63,6 +64,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 @click.option("-p", "--pool", default=False, is_flag=True, help=help_pool)
 @click.option("-r", "--reset", default=False, is_flag=True, help=help_reset)
 @click.option("-s", "--show", default=False, is_flag=True, help=help_show)
+@click.option("-u", "--update", multiple=True, help=help_update)
 @click.option("-v", "--validate", multiple=True, help=help_validate)
 @click.option("-V", "--verbose", count=True, default=0, help=help_verbose)
 def main(
@@ -76,6 +78,7 @@ def main(
         pool: bool,
         reset: bool,
         show: bool,
+        update: tuple,
         validate: tuple,
         verbose: int
 ):
@@ -117,6 +120,11 @@ def main(
         for pid in validate:
             package = package_pool.get_package(pid)
             validation.integrity_check_packages(package, delay, email, verbose)
+        return 0
+
+    if len(update) > 0:
+        for pid in update:
+            package_pool.update_package(pid, verbose)
         return 0
 
     if bootstrap:
