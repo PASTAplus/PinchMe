@@ -73,34 +73,41 @@ def add_new_packages(identifier: str | None, limit: int, verbose: int):
         else:
             sql = SQL_PACKAGES_NO_LIMIT.replace("<DATE>", iso)
     packages = pasta_resource_registry.query(sql)
-    for package in packages:
-        if verbose >= 1:
-            print(f"Adding package '{package[0]}'")
-        try:
-             rp.insert_package(package[0], package[1])
-        except IntegrityError as e:
-            msg = f"Ignoring package '{package[0]}"
-            logger.warning(msg)
-            break
-        sql = SQL_RESOURCE.replace("<PID>", package[0])
-        resources = pasta_resource_registry.query(sql)
-        for resource in resources:
-            if verbose >=3:
-                print(f"Adding resource '{resource[0]}'")
+    if len(packages) == 0 and identifier is None:
+        msg = "No new packages to add to the pool"
+        logger.warning(msg)
+    elif len(packages) == 0 and identifier is not None:
+        msg = f"Package '{identifier}' not found in resource registry"
+        logger.warning(msg)
+    else:
+        for package in packages:
+            if verbose >= 1:
+                print(f"Adding package '{package[0]}'")
             try:
-                rp.insert_resource(
-                    resource[0],
-                    package[0],
-                    resource[1],
-                    resource[2],
-                    resource[3],
-                    resource[4],
-                    resource[5],
-                    resource[6]
-                )
+                 rp.insert_package(package[0], package[1])
             except IntegrityError as e:
-                msg = f"Ignoring resource '{resource[0]}'"
+                msg = f"Ignoring package '{package[0]}"
                 logger.warning(msg)
+                break
+            sql = SQL_RESOURCE.replace("<PID>", package[0])
+            resources = pasta_resource_registry.query(sql)
+            for resource in resources:
+                if verbose >=3:
+                    print(f"Adding resource '{resource[0]}'")
+                try:
+                    rp.insert_resource(
+                        resource[0],
+                        package[0],
+                        resource[1],
+                        resource[2],
+                        resource[3],
+                        resource[4],
+                        resource[5],
+                        resource[6]
+                    )
+                except IntegrityError as e:
+                    msg = f"Ignoring resource '{resource[0]}'"
+                    logger.warning(msg)
 
 
 def get_unvalidated(algorithm: str = "create_ascending") -> Query:
