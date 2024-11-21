@@ -86,7 +86,7 @@ def add_new_packages(identifier: str | None, limit: int, verbose: int):
             try:
                  rp.insert_package(package[0], package[1])
             except IntegrityError as e:
-                msg = f"Ignoring package '{package[0]}"
+                msg = f"Package found in package pool - skipping package '{package[0]}'"
                 logger.warning(msg)
                 break
             sql = SQL_RESOURCE.replace("<PID>", package[0])
