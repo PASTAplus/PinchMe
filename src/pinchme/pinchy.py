@@ -42,7 +42,7 @@ help_delay = "Delay (seconds) between package integrity checks."
 help_email = "Email on integrity error."
 help_failed = "Rerun integrity checks against all failed resources, then exit."
 help_limit = "Limit the number of new packages added to the validation pool."
-help_identifier = "Add specified package to validation pool, then exit."
+help_identifier = "Add specified package(s) to validation pool, then exit."
 help_pool = "Add new packages to validation pool, then exit."
 help_reset = "Reset validated flag on all packages/resources, then exit."
 help_show = "Show all failed resources. Error codes: 0b0001=MD5 || 0b0010=SHA1 || 0b0100=SIZE || 0b1000=NOTFOUND."
@@ -59,7 +59,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 @click.option("-d", "--delay", default=0, help=help_delay)
 @click.option("-e", "--email", default=False, is_flag=True, help=help_email)
 @click.option("-f", "--failed", default=False, is_flag=True, help=help_failed)
-@click.option("-i", "--identifier", default=None, help=help_identifier)
+@click.option("-i", "--identifier", multiple=True, help=help_identifier)
 @click.option("-l", "--limit", default=0, help=help_limit)
 @click.option("-p", "--pool", default=False, is_flag=True, help=help_pool)
 @click.option("-r", "--reset", default=False, is_flag=True, help=help_reset)
@@ -73,7 +73,7 @@ def main(
         delay: int,
         email: bool,
         failed: bool,
-        identifier: str,
+        identifier: tuple,
         limit: int,
         pool: bool,
         reset: bool,
@@ -112,8 +112,13 @@ def main(
             print(msg)
         return 0
 
+    if len(identifier) > 0:
+        for pid in identifier:
+            package_pool.add_new_packages(pid, 0, verbose)
+        return 0
+
     if pool:
-        package_pool.add_new_packages(identifier, limit, verbose)
+        package_pool.add_new_packages(None, limit, verbose)
         return 0
 
     if len(validate) > 0:
@@ -143,7 +148,7 @@ def main(
 
             # Add all packages to the validation pool, validate, then exit
             Path(Config.PINCHME_DB).unlink(missing_ok=True)
-            package_pool.add_new_packages(identifier, limit, verbose)
+            package_pool.add_new_packages(None, limit, verbose)
             packages = package_pool.get_packages(algorithm="create_ascending")
             validation.integrity_check_packages(packages, delay, email, verbose)
 
@@ -172,7 +177,7 @@ def main(
         logger.warning(f"Lock file {lock.lock_file} acquired")
 
         # Add new packages to the validation pool and validate first
-        package_pool.add_new_packages(identifier, limit, verbose)
+        package_pool.add_new_packages(None, limit, verbose)
         packages = package_pool.get_unvalidated(algorithm="create_ascending")
         validation.integrity_check_packages(packages, delay, email, verbose)
 
