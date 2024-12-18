@@ -61,7 +61,7 @@ def integrity_check_packages(packages: Query, delay: int, email: bool, verbose: 
 def recheck_failed_resources(delay: int, email: bool, verbose: int):
     rp = ResourcePool(Config.PINCHME_DB)
     resources = rp.get_failed_resources()
-    for resource in resources:
+    for package, resource in resources:
         if verbose >= 1:
             print(f"Revalidating resource '{resource.id}'")
         invalid = 0b0000
