@@ -134,3 +134,6 @@ dmypy.json
 config.py
 *.sqlite
 tests/data
+# pixi environments
+.pixi
+*.egg-info
