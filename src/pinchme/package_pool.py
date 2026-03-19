@@ -135,7 +135,7 @@ def get_package(pid: str) -> Query:
 
 def update_package(pid: str, verbose: int):
     package = get_package(pid)
-    if package.count() == 1:
+    if package is not None:
         rp = ResourcePool(Config.PINCHME_DB)
         engine = get_engine()
         resources = registry_query(engine, SQL_RESOURCE, params={"pid": pid})

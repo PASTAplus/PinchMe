@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 :Mod: resource_db
@@ -13,20 +12,19 @@
 :Created:
     5/20/20
 """
+
 from datetime import datetime
-from enum import unique
 
 import daiquiri
 from sqlalchemy import (
     Boolean,
     Column,
+    DateTime,
     Integer,
     String,
-    DateTime,
-    ForeignKey,
-    desc,
     asc,
-    func
+    desc,
+    func,
 )
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
@@ -34,8 +32,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.query import Query
 from sqlalchemy.sql import not_
-
-from pinchme.config import Config
 
 logger = daiquiri.getLogger(__name__)
 
@@ -113,9 +109,7 @@ class ResourcePool:
             logger.error(e)
         return p
 
-    def get_packages(
-            self, col: str = "date_created", order: str = "asc"
-    ) -> Query:
+    def get_packages(self, col: str = "date_created", order: str = "asc") -> Query:
         p = None
 
         if col == "id":
@@ -125,28 +119,15 @@ class ResourcePool:
 
         try:
             if order == "random":
-                p = (
-                    self.session.query(Packages)
-                    .order_by(func.random())
-                    .all()
-                )
+                p = self.session.query(Packages).order_by(func.random()).all()
             elif order == "desc":
-                p = (
-                    self.session.query(Packages)
-                    .order_by(desc(column))
-                    .all()
-                )
+                p = self.session.query(Packages).order_by(desc(column)).all()
             else:  # order == "asc":
-                p = (
-                    self.session.query(Packages)
-                    .order_by(asc(column))
-                    .all()
-                )
+                p = self.session.query(Packages).order_by(asc(column)).all()
 
         except NoResultFound as e:
             logger.error(e)
         return p
-
 
     def get_last_package_create_date(self) -> datetime:
         d = None
@@ -162,10 +143,10 @@ class ResourcePool:
             logger.error(e)
         return d
 
-    def get_package(self, id: str) -> Query:
+    def get_package(self, id: str) -> Packages | None:
         p = None
         try:
-            p = self.session.query(Packages).filter(Packages.id == id)
+            p = self.session.query(Packages).filter(Packages.id == id).first()
         except NoResultFound as e:
             logger.error(e)
         return p
@@ -183,9 +164,7 @@ class ResourcePool:
 
     def set_unvalidated_packages(self):
         try:
-            p = self.session.query(Packages).update(
-                {Packages.validated: False}
-            )
+            p = self.session.query(Packages).update({Packages.validated: False})
             self.session.commit()
         except NoResultFound as e:
             logger.error(e)
@@ -209,7 +188,8 @@ class ResourcePool:
             r = (
                 self.session.query(Packages, Resources)
                 .join(Resources, Packages.id == Resources.pid)
-                .filter(Resources.checked_last_status != 0).all()
+                .filter(Resources.checked_last_status != 0)
+                .all()
             )
         except NoResultFound as e:
             logger.error(e)
@@ -218,11 +198,7 @@ class ResourcePool:
     def get_unvalidated_resources(self) -> Query:
         r = None
         try:
-            r = (
-                self.session.query(Resources)
-                .filter(not_(Resources.validated))
-                .all()
-            )
+            r = self.session.query(Resources).filter(not_(Resources.validated)).all()
         except NoResultFound as e:
             logger.error(e)
         return r
@@ -230,11 +206,7 @@ class ResourcePool:
     def get_package_resources(self, pid: str) -> Query:
         r = None
         try:
-            r = (
-                self.session.query(Resources)
-                .filter(Resources.pid == pid)
-                .all()
-            )
+            r = self.session.query(Resources).filter(Resources.pid == pid).all()
         except NoResultFound as e:
             logger.error(e)
         return r
@@ -248,10 +220,25 @@ class ResourcePool:
         return p
 
     def insert_resource(
-        self, id: str, pid: str, type: str, entity_id: str, md5: str, sha1: str, bytesize: int, location: str
+        self,
+        id: str,
+        pid: str,
+        type: str,
+        entity_id: str,
+        md5: str,
+        sha1: str,
+        bytesize: int | None = None,
+        location: str | None = None,
     ):
         r = Resources(
-            id=id, pid=pid, type=type, entity_id=entity_id, md5=md5, sha1=sha1, bytesize=bytesize, location=location
+            id=id,
+            pid=pid,
+            type=type,
+            entity_id=entity_id,
+            md5=md5,
+            sha1=sha1,
+            bytesize=bytesize,
+            location=location,
         )
         try:
             self.session.add(r)
@@ -263,9 +250,7 @@ class ResourcePool:
 
     def set_unvalidated_resources(self):
         try:
-            r = self.session.query(Resources).update(
-                {Resources.validated: False}
-            )
+            r = self.session.query(Resources).update({Resources.validated: False})
             self.session.commit()
         except NoResultFound as e:
             logger.error(e)
@@ -283,9 +268,7 @@ class ResourcePool:
             logger.error(e)
             raise e
 
-    def set_status_resource(
-        self, id: str, count: int, date: datetime, status: int
-    ):
+    def set_status_resource(self, id: str, count: int, date: datetime, status: int):
         try:
             r = (
                 self.session.query(Resources)
@@ -308,11 +291,13 @@ class ResourcePool:
             r = (
                 self.session.query(Resources)
                 .filter(Resources.id == id)
-                .update({
-                    Resources.md5: md5,
-                    Resources.sha1: sha1,
-                    Resources.bytesize: bytesize,
-                })
+                .update(
+                    {
+                        Resources.md5: md5,
+                        Resources.sha1: sha1,
+                        Resources.bytesize: bytesize,
+                    }
+                )
             )
             self.session.commit()
         except NoResultFound as e:
