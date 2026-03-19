@@ -93,7 +93,7 @@ def add_new_packages(identifier: str | None, limit: int, verbose: int):
 def get_unvalidated(algorithm: str = "create_ascending") -> Query:
     rp = ResourcePool(Config.PINCHME_DB)
     if algorithm == "random":
-        packages = rp.get_unvalidated_packages(col="id", order="asc")
+        packages = rp.get_unvalidated_packages(col="id", order="random")
     elif algorithm == "id_ascending":
         packages = rp.get_unvalidated_packages(col="id", order="asc")
     elif algorithm == "id_descending":
