@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 :Mod: pinchy
@@ -12,23 +11,26 @@
 :Created:
     5/12/20
 """
+
 import os
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import click
 import daiquiri
 
+from pinchme import package_pool, validation
 from pinchme.config import Config
-from pinchme import package_pool
-from pinchme import validation
 from pinchme.lock import Lock
-
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 logfile = cwd + "/pinchme.log"
 daiquiri.setup(
-    level=Config.LOG_LEVEL, outputs=(daiquiri.output.File(Config.LOG_FILE), "stdout",)
+    level=Config.LOG_LEVEL,
+    outputs=(
+        daiquiri.output.File(Config.LOG_FILE),
+        "stdout",
+    ),
 )
 logger = daiquiri.getLogger(__name__)
 
@@ -37,7 +39,9 @@ help_algorithm = (
     "Package pool selection algorithm: either 'create_ascending', 'create_descending', 'id_ascending', "
     " 'id_descending', or 'random' (default)."
 )
-help_bootstrap = "Create a new resource database and run validation against all packages."
+help_bootstrap = (
+    "Create a new resource database and run validation against all packages."
+)
 help_delay = "Delay (seconds) between package integrity checks."
 help_email = "Email on integrity error."
 help_failed = "Rerun integrity checks against all failed resources, then exit."
@@ -68,26 +72,26 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 @click.option("-v", "--validate", multiple=True, help=help_validate)
 @click.option("-V", "--verbose", count=True, default=0, help=help_verbose)
 def main(
-        algorithm: str,
-        bootstrap: bool,
-        delay: int,
-        email: bool,
-        failed: bool,
-        identifier: tuple,
-        limit: int,
-        pool: bool,
-        reset: bool,
-        show: bool,
-        update: tuple,
-        validate: tuple,
-        verbose: int
+    algorithm: str,
+    bootstrap: bool,
+    delay: int,
+    email: bool,
+    failed: bool,
+    identifier: tuple,
+    limit: int,
+    pool: bool,
+    reset: bool,
+    show: bool,
+    update: tuple,
+    validate: tuple,
+    verbose: int,
 ):
     """
-        PinchMe
+    PinchMe
 
-        \b
-        A PASTA data package and resource integrity checker. Running "pinchme" without any options will
-        validate all new and existing data packages and resources, and then exit.
+    \b
+    A PASTA data package and resource integrity checker. Running "pinchme" without any options will
+    validate all new and existing data packages and resources, and then exit.
     """
 
     if reset:
@@ -101,7 +105,9 @@ def main(
     if show:
         resources = validation.show_failed_resources()
         if resources:
-            print("pid, resource_id, resource_date_created, checked_count, checked_last_date, checked_last_status")
+            print(
+                "pid, resource_id, resource_date_created, checked_count, checked_last_date, checked_last_status"
+            )
         else:
             print("No failed resources")
         for package, resource in resources:

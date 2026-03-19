@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 :Mod: test_model
@@ -12,6 +11,7 @@
 :Created:
     5/20/20
 """
+
 from datetime import datetime
 from pathlib import Path
 
@@ -19,8 +19,7 @@ import pendulum
 import pytest
 
 from pinchme.config import Config
-from pinchme.model.resource_db import ResourcePool, Packages, Resources
-
+from pinchme.model.resource_db import Packages, ResourcePool, Resources
 
 PACKAGE_ID = "edi.1.1"
 

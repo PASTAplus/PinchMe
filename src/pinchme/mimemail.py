@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 :Mod: mimemail
@@ -13,16 +12,15 @@
 :Created:
     10/31/2024
 """
+
+import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
-import smtplib
-import ssl
 
 import daiquiri
 
 from pinchme.config import Config
-
 
 logger = daiquiri.getLogger(__name__)
 

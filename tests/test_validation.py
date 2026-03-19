@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 :Mod: test_validation
@@ -12,14 +11,14 @@
 :Created:
     5/23/20
 """
+
 from pathlib import Path
 
 import pytest
 
-from pinchme.config import Config
 from pinchme import validation
+from pinchme.config import Config
 from pinchme.model.resource_db import ResourcePool
-
 
 PACKAGE_ID = "edi.1.1"
 
