@@ -31,22 +31,22 @@ SQL_PACKAGE = (
     "SELECT datapackagemanager.resource_registry.package_id, "
     "datapackagemanager.resource_registry.date_created "
     "FROM datapackagemanager.resource_registry WHERE "
-    "resource_type='dataPackage' AND package_id='<PID>'"
+    "resource_type='dataPackage' AND package_id = :pid"
 )
 
 SQL_PACKAGES = (
     "SELECT datapackagemanager.resource_registry.package_id, "
     "datapackagemanager.resource_registry.date_created "
     "FROM datapackagemanager.resource_registry WHERE "
-    "resource_type='dataPackage' AND date_created > '<DATE>' "
-    "ORDER BY date_created ASC LIMIT <LIMIT>"
+    "resource_type='dataPackage' AND date_created > :date "
+    "ORDER BY date_created ASC LIMIT :limit"
 )
 
 SQL_PACKAGES_NO_LIMIT = (
     "SELECT datapackagemanager.resource_registry.package_id, "
     "datapackagemanager.resource_registry.date_created "
     "FROM datapackagemanager.resource_registry WHERE "
-    "resource_type='dataPackage' AND date_created > '<DATE>' "
+    "resource_type='dataPackage' AND date_created > :date "
     "ORDER BY date_created ASC"
 )
 
@@ -59,16 +59,23 @@ SQL_RESOURCE = (
     "datapackagemanager.resource_registry.resource_size, "
     "datapackagemanager.resource_registry.resource_location "
     "FROM datapackagemanager.resource_registry "
-    "WHERE resource_type<>'dataPackage' AND package_id='<PID>'"
+    "WHERE resource_type<>'dataPackage' AND package_id = :pid"
 )
 
 
-def query(engine: Engine, sql: str, retries: int = 3, delay: int = 5) -> list[Row]:
-    """Execute a raw SQL query against the PASTA resource registry.
+def query(
+    engine: Engine,
+    sql: str,
+    params: dict | None = None,
+    retries: int = 3,
+    delay: int = 5,
+) -> list[Row]:
+    """Execute a parameterized SQL query against the PASTA resource registry.
 
     Args:
         engine: A SQLAlchemy Engine (obtain via ``pasta_db.get_engine()``).
-        sql: The SQL string to execute.
+        sql: The SQL string to execute (use ``:param`` bind syntax).
+        params: Optional dict of bind parameters.
         retries: Number of connection attempts before raising.
         delay: Seconds to wait between retries.
     """
@@ -76,7 +83,7 @@ def query(engine: Engine, sql: str, retries: int = 3, delay: int = 5) -> list[Ro
     while attempt < retries:
         try:
             with engine.connect() as connection:
-                rs = connection.execute(text(sql)).fetchall()
+                rs = connection.execute(text(sql), params or {}).fetchall()
             return rs
         except OperationalError as e:
             msg = f"Connection attempt {attempt + 1} failed: {e}"

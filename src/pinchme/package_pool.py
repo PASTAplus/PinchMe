@@ -24,6 +24,8 @@ from pinchme.pasta_resource_registry import (
     SQL_PACKAGES,
     SQL_PACKAGES_NO_LIMIT,
     SQL_RESOURCE,
+)
+from pinchme.pasta_resource_registry import (
     query as registry_query,
 )
 
@@ -41,14 +43,17 @@ def add_new_packages(identifier: str | None, limit: int, verbose: int):
 
     # Update resources for all new package identifiers in the resource pool
     if identifier is not None:
-        sql = SQL_PACKAGE.replace("<PID>", identifier)
+        sql = SQL_PACKAGE
+        params = {"pid": identifier}
     else:
         if limit > 0:
-            sql = SQL_PACKAGES.replace("<DATE>", iso).replace("<LIMIT>", str(limit))
+            sql = SQL_PACKAGES
+            params = {"date": iso, "limit": limit}
         else:
-            sql = SQL_PACKAGES_NO_LIMIT.replace("<DATE>", iso)
+            sql = SQL_PACKAGES_NO_LIMIT
+            params = {"date": iso}
     engine = get_engine()
-    packages = registry_query(engine, sql)
+    packages = registry_query(engine, sql, params=params)
     if len(packages) == 0 and identifier is None:
         msg = "No new packages to add to the pool"
         logger.warning(msg)
@@ -65,8 +70,7 @@ def add_new_packages(identifier: str | None, limit: int, verbose: int):
                 msg = f"Package found in package pool - skipping package '{package[0]}'"
                 logger.warning(msg)
                 break
-            sql = SQL_RESOURCE.replace("<PID>", package[0])
-            resources = registry_query(engine, sql)
+            resources = registry_query(engine, SQL_RESOURCE, params={"pid": package[0]})
             for resource in resources:
                 if verbose >= 3:
                     print(f"Adding resource '{resource[0]}'")
@@ -134,8 +138,7 @@ def update_package(pid: str, verbose: int):
     if package.count() == 1:
         rp = ResourcePool(Config.PINCHME_DB)
         engine = get_engine()
-        sql = SQL_RESOURCE.replace("<PID>", pid)
-        resources = registry_query(engine, sql)
+        resources = registry_query(engine, SQL_RESOURCE, params={"pid": pid})
         for resource in resources:
             rp.update_resource(resource[0], resource[3], resource[4], resource[5])
             if verbose >= 1:
