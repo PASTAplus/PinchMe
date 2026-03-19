@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 :Mod: test_pasta_resource_registry
@@ -12,11 +11,11 @@
 :Created:
     5/20/20
 """
+
 import datetime
 
-import pytest
-
-from pinchme import pasta_resource_registry
+from pinchme.pasta_db import get_engine
+from pinchme.pasta_resource_registry import query
 
 
 def test_package_query():
@@ -41,7 +40,8 @@ def test_package_query():
         "ORDER BY date_created ASC LIMIT 10"
     )
 
-    packages = pasta_resource_registry.query(sql)
+    engine = get_engine()
+    packages = query(engine, sql)
     assert len(packages) == 10
     for package in packages:
         assert package in test_data
@@ -89,7 +89,8 @@ def test_resource_query():
         "WHERE resource_type<>'dataPackage' AND package_id='edi.1.1'"
     )
 
-    resources = pasta_resource_registry.query(sql)
+    engine = get_engine()
+    resources = query(engine, sql)
     assert len(resources) == 4
     for resource in resources:
         assert resource in test_data
