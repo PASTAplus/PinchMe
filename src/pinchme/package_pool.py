@@ -12,12 +12,13 @@
     5/23/20
 """
 
+from collections.abc import Sequence
+
 import daiquiri
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm.query import Query
 
 from pinchme.config import Config
-from pinchme.model.resource_db import ResourcePool
+from pinchme.model.resource_db import Packages, ResourcePool
 from pinchme.pasta_db import get_engine
 from pinchme.pasta_resource_registry import (
     SQL_PACKAGE,
@@ -90,7 +91,7 @@ def add_new_packages(identifier: str | None, limit: int, verbose: int):
                     logger.warning(msg)
 
 
-def get_unvalidated(algorithm: str = "create_ascending") -> Query:
+def get_unvalidated(algorithm: str = "create_ascending") -> Sequence[Packages]:
     rp = ResourcePool(Config.PINCHME_DB)
     if algorithm == "random":
         packages = rp.get_unvalidated_packages(col="id", order="random")
@@ -105,7 +106,7 @@ def get_unvalidated(algorithm: str = "create_ascending") -> Query:
     return packages
 
 
-def get_packages(algorithm: str = "create_ascending") -> Query:
+def get_packages(algorithm: str = "create_ascending") -> Sequence[Packages]:
     rp = ResourcePool(Config.PINCHME_DB)
     if algorithm == "random":
         packages = rp.get_packages(col="id", order="random")
@@ -128,7 +129,7 @@ def reset_all():
     logger.info("Reset all resources to unvalidated")
 
 
-def get_package(pid: str) -> Query:
+def get_package(pid: str) -> Packages | None:
     rp = ResourcePool(Config.PINCHME_DB)
     return rp.get_package(pid)
 

@@ -13,21 +13,23 @@
 """
 
 import hashlib
+from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 from time import sleep
 
 import daiquiri
-from sqlalchemy.orm.query import Query
 
 import pinchme.mimemail as mimemail
 from pinchme.config import Config
-from pinchme.model.resource_db import ResourcePool, Resources
+from pinchme.model.resource_db import Packages, ResourcePool, Resources
 
 logger = daiquiri.getLogger(__name__)
 
 
-def integrity_check_packages(packages: Query, delay: int, email: bool, verbose: int):
+def integrity_check_packages(
+    packages: Sequence[Packages], delay: int, email: bool, verbose: int
+):
     rp = ResourcePool(Config.PINCHME_DB)
     if packages is None:
         msg = "No data packages specified for validation"
@@ -60,7 +62,7 @@ def integrity_check_packages(packages: Query, delay: int, email: bool, verbose: 
 def recheck_failed_resources(delay: int, email: bool, verbose: int):
     rp = ResourcePool(Config.PINCHME_DB)
     resources = rp.get_failed_resources()
-    for package, resource in resources:
+    for _package, resource in resources:
         if verbose >= 1:
             print(f"Revalidating resource '{resource.id}'")
         invalid = 0b0000
@@ -80,7 +82,7 @@ def recheck_failed_resources(delay: int, email: bool, verbose: int):
         sleep(delay)
 
 
-def show_failed_resources() -> Query:
+def show_failed_resources() -> Sequence[tuple[Packages, Resources]]:
     rp = ResourcePool(Config.PINCHME_DB)
     return rp.get_failed_resources()
 
