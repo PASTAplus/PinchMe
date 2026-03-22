@@ -32,3 +32,4 @@ Before considering a task "done," you must execute the following via `pixi run`:
     - "Summary:" - A brief description of the commit.
     - "Context:" - The purpose or background of the commit.
     - "Changes:" - The specific changes made to the codebase.
+- Display of Gemini generated commit message should not include line numbers.
