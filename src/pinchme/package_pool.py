@@ -88,7 +88,7 @@ def add_new_packages(identifier: str | None, limit: int, verbose: int):
                 try:
                     rp.insert_resource(
                         resource[0],  # resource_id
-                        package[0],   # package_id
+                        package[0],  # package_id
                         resource[1],  # resource_type
                         resource[2],  # entity_id
                         resource[3],  # md5_checksum
