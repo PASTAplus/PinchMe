@@ -16,10 +16,9 @@ from datetime import datetime
 from pathlib import Path
 
 import pendulum
-import pytest
 
 from pinchme.config import Config
-from pinchme.model.resource_db import Packages, ResourcePool, Resources
+from pinchme.model.resource_db import Packages, Resources
 
 PACKAGE_ID = "edi.1.1"
 
@@ -78,18 +77,6 @@ TEST_RESOURCE_DATA = [
         "c1d6e1099634dd36f4e40b7da2558b12dc45b149",
     ),
 ]
-
-
-@pytest.fixture()
-def rp():
-    resource_pool = ResourcePool(Config.PINCHME_TEST_DB)
-    return resource_pool
-
-
-@pytest.fixture()
-def clean_up():
-    yield
-    Path(Config.PINCHME_TEST_DB).unlink(missing_ok=True)
 
 
 def test_pasta_db_connection():

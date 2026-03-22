@@ -14,11 +14,7 @@
 
 from pathlib import Path
 
-import pytest
-
 from pinchme import validation
-from pinchme.config import Config
-from pinchme.model.resource_db import ResourcePool
 
 PACKAGE_ID = "edi.1.1"
 
@@ -31,18 +27,6 @@ RESOURCE_SIZE = 1516906
 RESOURCE_LOCATION = str(
     Path.cwd().resolve() / "data/edi.1.1/482fef41e108b34ad816e96423711470"
 )
-
-
-@pytest.fixture()
-def rp():
-    resource_pool = ResourcePool(Config.PINCHME_TEST_DB)
-    return resource_pool
-
-
-@pytest.fixture()
-def clean_up():
-    yield
-    Path(Config.PINCHME_TEST_DB).unlink(missing_ok=True)
 
 
 def test_valid_md5(rp, clean_up):
