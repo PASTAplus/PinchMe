@@ -13,6 +13,7 @@
 """
 
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -96,11 +97,11 @@ def main(
 
     if reset:
         package_pool.reset_all()
-        return 0
+        sys.exit(0)
 
     if failed:
         validation.recheck_failed_resources(delay, email, verbose)
-        return 0
+        sys.exit(0)
 
     if show:
         resources = validation.show_failed_resources()
@@ -116,34 +117,35 @@ def main(
                 f"{resource.checked_last_date}, 0b{resource.checked_last_status:04b}"
             )
             print(msg)
-        return 0
+        sys.exit(0)
 
     if len(identifier) > 0:
         for pid in identifier:
             package_pool.add_new_packages(pid, 0, verbose)
-        return 0
+        sys.exit(0)
 
     if pool:
         package_pool.add_new_packages(None, limit, verbose)
-        return 0
+        sys.exit(0)
 
     if len(validate) > 0:
         for pid in validate:
             package = package_pool.get_package(pid)
-            validation.integrity_check_packages(package, delay, email, verbose)
-        return 0
+            if package is not None:
+                validation.integrity_check_packages([package], delay, email, verbose)
+        sys.exit(0)
 
     if len(update) > 0:
         for pid in update:
             package_pool.update_package(pid, verbose)
-        return 0
+        sys.exit(0)
 
     if bootstrap:
         # Validate all package resources
         lock = Lock(Config.LOCK_FILE)
         if lock.locked:
             logger.error(f"Lock file {lock.lock_file} exists, exiting...")
-            return 1
+            sys.exit(1)
         else:
             start = datetime.now()
             msg = f"Bootstrap validation started: {start.isoformat()}"
@@ -167,13 +169,13 @@ def main(
 
             logger.warning(f"Elapsed time: {end - start}")
 
-            return 0
+            sys.exit(0)
 
     # Validate all new and existing package resources
     lock = Lock(Config.LOCK_FILE)
     if lock.locked:
         logger.error(f"Lock file {lock.lock_file} exists, exiting...")
-        return 1
+        sys.exit(1)
     else:
         start = datetime.now()
         msg = f"Validation started: {start.isoformat()}"
@@ -200,7 +202,7 @@ def main(
 
         logger.warning(f"Elapsed time: {end - start}")
 
-        return 0
+        sys.exit(0)
 
 
 if __name__ == "__main__":

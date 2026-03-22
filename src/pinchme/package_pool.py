@@ -34,6 +34,13 @@ logger = daiquiri.getLogger(__name__)
 
 
 def add_new_packages(identifier: str | None, limit: int, verbose: int):
+    """Add new packages to the resource pool.
+
+    Args:
+        identifier (str | None): Package identifier to add to the resource pool.
+        limit (int): Maximum number of packages to add to the resource pool.
+        verbose (int: Verbosity level for logging.
+    """
     rp = ResourcePool(Config.PINCHME_DB)
     # Update local resource pool with next set of package identifiers
     d = rp.get_last_package_create_date()
@@ -64,9 +71,12 @@ def add_new_packages(identifier: str | None, limit: int, verbose: int):
     else:
         for package in packages:
             if verbose >= 1:
-                print(f"Adding package '{package[0]}'")
+                print(f"Adding package '{package[0]}'")  # package_id
             try:
-                rp.insert_package(package[0], package[1])
+                rp.insert_package(
+                    package[0],  # package_id
+                    package[1],  # date_created
+                )
             except IntegrityError:
                 msg = f"Package found in package pool - skipping package '{package[0]}'"
                 logger.warning(msg)
@@ -74,17 +84,17 @@ def add_new_packages(identifier: str | None, limit: int, verbose: int):
             resources = registry_query(engine, SQL_RESOURCE, params={"pid": package[0]})
             for resource in resources:
                 if verbose >= 3:
-                    print(f"Adding resource '{resource[0]}'")
+                    print(f"Adding resource '{resource[0]}'")  # resource_id
                 try:
                     rp.insert_resource(
-                        resource[0],
-                        package[0],
-                        resource[1],
-                        resource[2],
-                        resource[3],
-                        resource[4],
-                        resource[5],
-                        resource[6],
+                        resource[0],  # resource_id
+                        package[0],   # package_id
+                        resource[1],  # resource_type
+                        resource[2],  # entity_id
+                        resource[3],  # md5_checksum
+                        resource[4],  # sha1_checksum
+                        resource[5],  # resource_size
+                        resource[6],  # resource_location
                     )
                 except IntegrityError:
                     msg = f"Ignoring resource '{resource[0]}'"
@@ -141,7 +151,12 @@ def update_package(pid: str, verbose: int):
         engine = get_engine()
         resources = registry_query(engine, SQL_RESOURCE, params={"pid": pid})
         for resource in resources:
-            rp.update_resource(resource[0], resource[3], resource[4], resource[5])
+            rp.update_resource(
+                resource[0],  # resource_id
+                resource[3],  # md5_checksum
+                resource[4],  # sha1_checksum
+                resource[5],  # resource_size
+            )
             if verbose >= 1:
                 print(
                     f"Updating resource {resource[0]}: {resource[3]}, {resource[4]}, {resource[5]}"

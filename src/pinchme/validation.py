@@ -28,16 +28,18 @@ logger = daiquiri.getLogger(__name__)
 
 
 def integrity_check_packages(
-    packages: Sequence[Packages], delay: int, email: bool, verbose: int
+    packages: Sequence[Packages] | None, delay: int, email: bool, verbose: int
 ):
     rp = ResourcePool(Config.PINCHME_DB)
     if packages is None:
         msg = "No data packages specified for validation"
         logger.warning(msg)
+        return
+
     for package in packages:
         if verbose >= 1:
             print(f"Validating package '{package.id}'")
-        resources = rp.get_package_resources(package.id)
+        resources = rp.get_package_resources(str(package.id))
         for resource in resources:
             if verbose >= 3:
                 print(f"Validating resource '{resource.id}'")
@@ -49,14 +51,14 @@ def integrity_check_packages(
                 invalid = invalid | valid_size(resource)
             date = datetime.now()
             count = resource.checked_count + 1
-            rp.set_status_resource(resource.id, count, date, invalid)
-            rp.set_validated_resource(resource.id)
+            rp.set_status_resource(str(resource.id), count, date, invalid)
+            rp.set_validated_resource(str(resource.id))
             if invalid and email:
                 subject = f"Integrity Error: {pid}"
                 msg = f"Resource '{resource.id}' failed integrity check"
                 mimemail.send_mail(subject, msg)
             sleep(delay)
-        rp.set_validated_package(package.id)
+        rp.set_validated_package(str(package.id))
 
 
 def recheck_failed_resources(delay: int, email: bool, verbose: int):
@@ -73,8 +75,8 @@ def recheck_failed_resources(delay: int, email: bool, verbose: int):
             invalid = invalid | valid_size(resource)
         date = datetime.now()
         count = resource.checked_count + 1
-        rp.set_status_resource(resource.id, count, date, invalid)
-        rp.set_validated_resource(resource.id)
+        rp.set_status_resource(str(resource.id), count, date, invalid)
+        rp.set_validated_resource(str(resource.id))
         if invalid and email:
             subject = f"Integrity Error: {pid}"
             msg = f"Resource '{resource.id}' failed integrity check"
