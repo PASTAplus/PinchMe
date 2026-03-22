@@ -27,6 +27,16 @@ from pinchme.model.resource_db import Packages, ResourcePool, Resources
 logger = daiquiri.getLogger(__name__)
 
 
+def _stop_file_exists() -> bool:
+    """Check for existence of stop file and remove it if found."""
+    stop_file = Path(Config.STOP_FILE)
+    if stop_file.exists():
+        stop_file.unlink()
+        logger.warning(f"Stop file {Config.STOP_FILE} detected; stopping...")
+        return True
+    return False
+
+
 def integrity_check_packages(
     packages: Sequence[Packages] | None, delay: int, email: bool, verbose: int
 ):
@@ -57,8 +67,12 @@ def integrity_check_packages(
                 subject = f"Integrity Error: {pid}"
                 msg = f"Resource '{resource.id}' failed integrity check"
                 mimemail.send_mail(subject, msg)
+            if _stop_file_exists():
+                return
             sleep(delay)
         rp.set_validated_package(str(package.id))
+        if _stop_file_exists():
+            return
 
 
 def recheck_failed_resources(delay: int, email: bool, verbose: int):
@@ -81,6 +95,8 @@ def recheck_failed_resources(delay: int, email: bool, verbose: int):
             subject = f"Integrity Error: {pid}"
             msg = f"Resource '{resource.id}' failed integrity check"
             mimemail.send_mail(subject, msg)
+        if _stop_file_exists():
+            return
         sleep(delay)
 
 

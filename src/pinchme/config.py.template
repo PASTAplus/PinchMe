@@ -18,6 +18,7 @@ import logging
 
 class Config:
     LOCK_FILE = "<PATH>/pinchme.lock"
+    STOP_FILE = "<PATH>/pinchme.stop"
 
     LOG_FILE = "<PATH>/pinchme.log"
     LOG_LEVEL = logging.WARN
