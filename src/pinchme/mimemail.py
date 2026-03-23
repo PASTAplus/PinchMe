@@ -13,6 +13,7 @@
     10/31/2024
 """
 
+import collections.abc
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -30,7 +31,14 @@ def send_mail(subject, msg) -> bool:
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
     message["From"] = formataddr((Config.FROM_NAME, Config.FROM))
-    message["To"] = formataddr((Config.TO_NAME, Config.TO))
+    
+    if isinstance(Config.TO, str):
+        message["To"] = formataddr((Config.TO_NAME, Config.TO))
+    elif isinstance(Config.TO, collections.abc.Sequence):
+        message["To"] = ", ".join(Config.TO)
+    else:
+        logger.error("Config.TO must be a string or a sequence of strings.")
+        return False
 
     message.add_header("X-SES-CONFIGURATION-SET", "edi-dedicated")
 
