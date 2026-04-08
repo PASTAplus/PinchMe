@@ -235,3 +235,42 @@ def test_set_status_resource(rp, clean_up):
     assert r.checked_last_status
     assert r.checked_last_date == date
     assert r.checked_count == count
+
+
+def test_toggle_ignore_package(rp, clean_up):
+    rp.insert_package(PACKAGE_ID, datetime.now())
+    p = rp.get_package(PACKAGE_ID)
+    assert not p.ignore
+    rp.toggle_ignore_package(PACKAGE_ID)
+    p = rp.get_package(PACKAGE_ID)
+    assert p.ignore
+    rp.toggle_ignore_package(PACKAGE_ID)
+    p = rp.get_package(PACKAGE_ID)
+    assert not p.ignore
+
+
+def test_get_ignored_packages(rp, clean_up):
+    rp.insert_package("edi.1.1", datetime.now())
+    rp.insert_package("edi.2.1", datetime.now())
+    rp.toggle_ignore_package("edi.1.1")
+    ignored = rp.get_ignored_packages()
+    assert len(ignored) == 1
+    assert ignored[0].id == "edi.1.1"
+
+
+def test_get_packages_respects_ignore(rp, clean_up):
+    rp.insert_package("edi.1.1", datetime.now())
+    rp.insert_package("edi.2.1", datetime.now())
+    rp.toggle_ignore_package("edi.1.1")
+    packages = rp.get_packages()
+    assert len(packages) == 1
+    assert packages[0].id == "edi.2.1"
+
+
+def test_get_unvalidated_packages_respects_ignore(rp, clean_up):
+    rp.insert_package("edi.1.1", datetime.now())
+    rp.insert_package("edi.2.1", datetime.now())
+    rp.toggle_ignore_package("edi.1.1")
+    packages = rp.get_unvalidated_packages()
+    assert len(packages) == 1
+    assert packages[0].id == "edi.2.1"

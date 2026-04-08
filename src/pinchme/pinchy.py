@@ -48,6 +48,8 @@ help_email = "Email on integrity error."
 help_failed = "Rerun integrity checks against all failed resources, then exit."
 help_limit = "Limit the number of new packages added to the validation pool."
 help_identifier = "Add specified package(s) to validation pool, then exit."
+help_ignore = "Ignore specified package(s) during validation (repeat identifier toggles ignore)."
+help_list_ignored = "List all ignored data packages, then exit."
 help_pool = "Add new packages to validation pool, then exit."
 help_reset = "Reset validated flag on all packages/resources, then exit."
 help_show = "Show all failed resources. Error codes: 0b0001=MD5 || 0b0010=SHA1 || 0b0100=SIZE || 0b1000=NOTFOUND."
@@ -66,6 +68,8 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 @click.option("-e", "--email", default=False, is_flag=True, help=help_email)
 @click.option("-f", "--failed", default=False, is_flag=True, help=help_failed)
 @click.option("-i", "--identifier", multiple=True, help=help_identifier)
+@click.option("-I", "--ignore", multiple=True, help=help_ignore)
+@click.option("-L", "--list-ignored", default=False, is_flag=True, help=help_list_ignored)
 @click.option("-l", "--limit", default=0, help=help_limit)
 @click.option("-p", "--pool", default=False, is_flag=True, help=help_pool)
 @click.option("-r", "--reset", default=False, is_flag=True, help=help_reset)
@@ -81,6 +85,8 @@ def main(
     email: bool,
     failed: bool,
     identifier: tuple,
+    ignore: tuple,
+    list_ignored: bool,
     limit: int,
     pool: bool,
     reset: bool,
@@ -125,6 +131,21 @@ def main(
                 f"{resource.checked_last_date}, 0b{resource.checked_last_status:04b}"
             )
             print(msg)
+        sys.exit(0)
+
+    if list_ignored:
+        packages = package_pool.get_ignored()
+        if packages:
+            print("pid, date_created")
+            for package in packages:
+                print(f"{package.id}, {package.date_created}")
+        else:
+            print("No ignored packages")
+        sys.exit(0)
+
+    if len(ignore) > 0:
+        for pid in ignore:
+            package_pool.toggle_ignore(pid)
         sys.exit(0)
 
     if len(identifier) > 0:

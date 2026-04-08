@@ -144,6 +144,16 @@ def get_package(pid: str) -> Packages | None:
     return rp.get_package(pid)
 
 
+def toggle_ignore(pid: str):
+    rp = ResourcePool(Config.PINCHME_DB)
+    rp.toggle_ignore_package(pid)
+
+
+def get_ignored() -> Sequence[Packages]:
+    rp = ResourcePool(Config.PINCHME_DB)
+    return rp.get_ignored_packages()
+
+
 def update_package(pid: str, verbose: int):
     package = get_package(pid)
     if package is not None:
