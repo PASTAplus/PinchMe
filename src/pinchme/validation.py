@@ -67,8 +67,6 @@ def integrity_check_packages(
                 subject = f"Integrity Error: {pid}"
                 msg = f"Resource '{resource.id}' failed integrity check"
                 mimemail.send_mail(subject, msg)
-            if _stop_file_exists():
-                return
             sleep(delay)
         rp.set_validated_package(str(package.id))
         if _stop_file_exists():
