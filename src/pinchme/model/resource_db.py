@@ -46,6 +46,7 @@ class Packages(Base):
     id: Mapped[str] = mapped_column(String(), primary_key=True)
     date_created: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
     validated: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=False)
+    ignore: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=False)
 
 
 class Resources(Base):
@@ -87,7 +88,7 @@ class ResourcePool:
             column = Packages.date_created
 
         try:
-            stmt = select(Packages).filter(not_(Packages.validated))
+            stmt = select(Packages).filter(not_(Packages.validated), not_(Packages.ignore))
             if order == "random":
                 stmt = stmt.order_by(func.random())
             elif order == "desc":
@@ -112,7 +113,7 @@ class ResourcePool:
             column = Packages.date_created
 
         try:
-            stmt = select(Packages)
+            stmt = select(Packages).filter(not_(Packages.ignore))
             if order == "random":
                 stmt = stmt.order_by(func.random())
             elif order == "desc":
@@ -122,6 +123,29 @@ class ResourcePool:
 
             p = self.session.execute(stmt).scalars().all()
 
+        except NoResultFound as e:
+            logger.error(e)
+        return p
+
+    def toggle_ignore_package(self, id: str):
+        try:
+            stmt = select(Packages).filter(Packages.id == id)
+            p = self.session.execute(stmt).scalar_one_or_none()
+            if p is not None:
+                p.ignore = not p.ignore
+                self.session.commit()
+                logger.info(f"Toggled ignore for package '{id}' to {p.ignore}")
+            else:
+                logger.warning(f"Package '{id}' not found to toggle ignore")
+        except NoResultFound as e:
+            logger.error(e)
+            raise e
+
+    def get_ignored_packages(self) -> Sequence[Packages]:
+        p = []
+        try:
+            stmt = select(Packages).filter(Packages.ignore)
+            p = self.session.execute(stmt).scalars().all()
         except NoResultFound as e:
             logger.error(e)
         return p
@@ -210,10 +234,10 @@ class ResourcePool:
             logger.error(e)
         return r
 
-    def get_resource(self, id: str) -> Resources | None:
+    def get_resource(self, pid: str) -> Resources | None:
         p = None
         try:
-            stmt = select(Resources).filter(Resources.id == id)
+            stmt = select(Resources).filter(Resources.id == pid)
             p = self.session.execute(stmt).scalar_one()
         except NoResultFound as e:
             logger.error(e)

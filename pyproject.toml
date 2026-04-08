@@ -1,6 +1,6 @@
 [project]
 name = "PinchMe"
-version = "0.1.0"
+version = "0.2.0"
 authors = [
     {name = "James Brunt", email = "jwbrunt@gmail.com"},
     {name = "Mark Servilla", email = "mark.servilla@gmail.com"},

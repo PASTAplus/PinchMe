@@ -1,5 +1,5 @@
 # Project Context: PinchMe
-**PinchMe** is an EDI (Electronic Data Interchange) data repository integrity scanner.
+**PinchMe** is an EDI (Environmental Data Initiative) data repository integrity scanner.
 
 ## 1. Core Environment & Constraints
 - **Package Manager:** Pixi (Conda-based). Never use `pip` or `conda` directly.
